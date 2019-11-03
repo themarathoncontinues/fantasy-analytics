@@ -4,6 +4,8 @@ import requests
 
 from .constants import FBA_ENDPOINT
 
+from .utils.http_util import request_status
+
 logging.basicConfig(level='INFO')
 logger = logging.getLogger(__name__)
 
@@ -13,7 +15,7 @@ class League(object):
         self.league_id = league_id
         self.year = year
         self.current_week = 0
-        self.nba_week = 0
+        self.nba_day = 0
         self.team_id = team_id
         self.cookies = cookies
         if self.cookies:
@@ -34,12 +36,13 @@ class League(object):
         resp = requests.get(req, params='', cookies=self.cookies)
 
         self.status = resp.status_code
+        request_status(self.status)
 
         league_data = resp.json()
         logger.info(f'League Data: {json.dumps(league_data, indent=4)}')
 
         self.current_week = league_data['status']['currentMatchupPeriod']
-        self.nba_week = league_data['status']['latestScoringPeriod']
+        self.nba_day = league_data['status']['latestScoringPeriod']
 
     def _fetch_team_id(self):
         params = {
@@ -50,6 +53,7 @@ class League(object):
         resp = requests.get(req, params=params, cookies=self.cookies)
 
         self.status = resp.status_code
+        request_status(self.status)
 
         teams = resp.json()['teams']
 
@@ -67,6 +71,7 @@ class League(object):
         resp = requests.get(req, params=params, cookies=self.cookies)
 
         self.status = resp.status_code
+        request_status(self.status)
 
         team_data = resp.json()
 
