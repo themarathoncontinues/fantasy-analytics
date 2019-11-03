@@ -2,10 +2,12 @@
 import ast
 import re
 
+
 from flask import redirect, render_template, request, session
 from app import create_app
 
-from utils.auth import espn_authenticate
+from src.auth import espn_authenticate
+from src.league import League
 
 
 app = create_app()
@@ -26,7 +28,7 @@ def dashboard():
 		username = request.values.get('username')
 		password = request.values.get('password')
 		cookies = request.values.get('cookies')
-		year = request.values.get('league-year')
+		year = int(request.values.get('league-year'))
 
 		if not (username and password) and cookies == '':
 			return 404
@@ -42,12 +44,20 @@ def dashboard():
 		league_id = re.search('(?<=leagueId=)(.*)(?=&)', league_url).group()
 		team_id = re.search('(?<=teamId=)(.*)', league_url).group()
 
+		league = League(
+			league_id=league_id,
+			year=year,
+			team_id=team_id,
+			cookies=creds
+		)
+
 		return render_template(
 			'dashboard.html',
 			creds=creds,
 			year=int(year),
 			league_id=league_id,
-			team_id=team_id
+			team_id=team_id,
+			league_obj=dir(league)
 		)
 
 
