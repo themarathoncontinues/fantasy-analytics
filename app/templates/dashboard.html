@@ -15,7 +15,11 @@
 	{% endfor %}
 
 <br><br><br>
-<div id="container" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
+<div id="container" style="min-width: 310px; height: 600px; margin: 0 auto"></div>
+
+<script>
+var roster_data = {{ roster_stats|tojson|safe }}
+</script>
 
 <script src="{{ url_for('static', filename='chart.js') }}"></script>
 
