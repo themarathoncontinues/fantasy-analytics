@@ -63,7 +63,8 @@ def dashboard():
 			year=int(year),
 			league_id=league_id,
 			team_id=team_id,
-			league_obj=dir(league)
+			league_obj=dir(league),
+			roster_stats=league.stat_totals
 		)
 
 
