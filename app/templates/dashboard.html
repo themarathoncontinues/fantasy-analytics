@@ -5,4 +5,10 @@
 <p>league = {{ league_id }}</p>
 <p>year = {{ year }}</p>
 <p>team = {{ team_id }}</p>
+<br><br>
+<p>league objects</p>
+<ul>
+	{% for obj in league_obj %}
+		<li>{{ obj }}</li>
+	{% endfor %}
 {% endblock %}
