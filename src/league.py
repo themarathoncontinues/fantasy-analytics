@@ -120,8 +120,12 @@ class League(object):
                         relevant_items = dict((STATS_INT_TO_STRING[k], v) for (k, v) in season_totals.items()
                                               if k in STATS_INT_TO_STRING.keys())
 
+                        teams = self._fetch_teams()
+                        idx = roster.get('id')
+                        team_name = [x['nickname'] for x in teams['teams'] if x['id'] == idx][0].strip()
+
                         player_metadata = {
-                            'teamId': roster.get('id'),
+                            'teamId': team_name,
                             'name': get_nested(player, 'playerPoolEntry.player.fullName'),
                             'id': get_nested(player, 'playerPoolEntry.player.id'),
                             'stats': {
