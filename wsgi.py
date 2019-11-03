@@ -40,9 +40,15 @@ def dashboard():
 		else:
 			return 404
 
-		session['espn_cred_cookies'] = creds
 		league_id = re.search('(?<=leagueId=)(.*)(?=&)', league_url).group()
 		team_id = re.search('(?<=teamId=)(.*)', league_url).group()
+
+		session['session_info'] = {
+			'creds': creds,
+			'league_id': league_id,
+			'team_id': team_id,
+			'year': int(year)
+		}
 
 		league = League(
 			league_id=league_id,
@@ -59,6 +65,26 @@ def dashboard():
 			team_id=team_id,
 			league_obj=dir(league)
 		)
+
+
+@app.route('/my-team')
+def my_team():
+
+	meta = session.get('session_info')
+
+	league = League(
+		league_id=meta['league_id'],
+		year=meta['year'],
+		team_id=int(meta['team_id']),
+		cookies=meta['creds']
+	)
+
+	info = {
+		'session': meta,
+		'roster': league._fetch_roster()
+	}
+
+	return info
 
 
 if __name__ == "__main__":

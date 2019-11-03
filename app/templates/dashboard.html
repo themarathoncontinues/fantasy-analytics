@@ -1,6 +1,8 @@
 {% extends 'base.html' %}
 
 {% block content %}
+<a href="{{ url_for('my_team') }}">My Team</a>
+<hr>
 <p>Creds = {{ creds }}</p>
 <p>league = {{ league_id }}</p>
 <p>year = {{ year }}</p>
