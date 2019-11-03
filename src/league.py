@@ -94,6 +94,6 @@ class League(object):
 
         team_id_roster = [x for x in rosters if x.get('id') == self.team_id]
 
-        return rosters
+        return team_id_roster
 
 
