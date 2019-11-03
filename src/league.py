@@ -9,6 +9,7 @@ from .utils.http_util import request_status
 logging.basicConfig(level='INFO')
 logger = logging.getLogger(__name__)
 
+
 class League(object):
     """Get league instance from ESPN"""
     def __init__(self, league_id: int, year: int, team_id: int, cookies, debug=False):
@@ -27,6 +28,7 @@ class League(object):
         self._fetch_league()
         self._fetch_team_id()
         self._fetch_teams()
+        self._fetch_roster()
 
     def __repr__(self):
         return f'League: {self.league_id} Year: {self.year}'
@@ -75,11 +77,21 @@ class League(object):
 
         team_data = resp.json()
 
-    def _fetch_players(self):
+    def _fetch_roster(self):
         # here we will get players on waiver wire
         params = {
-            'scoringPeriod': self.current_week,
-            'view': 'players_wl'
+            'view': 'mRoster',
+            'scoringPeriod': self.current_week
         }
-        pass
+
+        req = f'{FBA_ENDPOINT}{self.year}/segments/0/leagues/{self.league_id}'
+        resp = requests.get(req, params=params, cookies=self.cookies)
+
+        self.status = resp.status_code
+        request_status(self.status)
+
+        rosters = resp.json()['teams']
+
+        team_id_roster = [x for x in rosters if x.get('id') == self.team_id]
+
 
