@@ -19,4 +19,4 @@ cookies = {
     'swid': swid
 }
 
-roster = League(league_id=69561285, year=2020, team_id=4, cookies=cookies)._calculate_totals()
+roster = League(league_id=69561285, year=2020, team_id=4, cookies=cookies).stat_totals

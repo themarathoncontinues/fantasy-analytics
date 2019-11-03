@@ -34,6 +34,7 @@ class League(object):
         self._fetch_teams()
         self.roster = self._fetch_roster()
         self.roster_stats = self._fetch_stats()
+        self.stat_totals = self._calculate_totals()
 
     def __repr__(self):
         return f'League: {self.league_id} Year: {self.year}'
