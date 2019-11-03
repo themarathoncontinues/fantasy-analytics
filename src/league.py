@@ -2,9 +2,13 @@ import json
 import logging
 import requests
 
-from .constants import FBA_ENDPOINT
+from .constants import (
+    FBA_ENDPOINT,
+    STATS_INT_TO_STRING
+)
 
 from .utils.http_util import request_status
+from .utils.json_util import get_nested
 
 logging.basicConfig(level='INFO')
 logger = logging.getLogger(__name__)
@@ -29,6 +33,7 @@ class League(object):
         self._fetch_team_id()
         self._fetch_teams()
         self.roster = self._fetch_roster()
+        self.roster_stats = self._fetch_stats()
 
     def __repr__(self):
         return f'League: {self.league_id} Year: {self.year}'
@@ -92,8 +97,54 @@ class League(object):
 
         rosters = resp.json()['teams']
 
-        team_id_roster = [x for x in rosters if x.get('id') == self.team_id]
+        team_id_roster = [x for x in rosters if x.get('id') == self.team_id][0]
 
         return team_id_roster
 
+    def _fetch_stats(self):
+        team_stats = []
+        roster = self.roster
 
+        entries = roster['roster'].get('entries')
+
+        for player in entries:
+            stats = get_nested(player, 'playerPoolEntry.player.stats')
+
+            for statline in stats:
+                if statline.get('statSplitTypeId') == 2:
+                    season_totals = statline.get('stats')
+
+                    relevant_items = dict((STATS_INT_TO_STRING[k], v) for (k, v) in season_totals.items()
+                                          if k in STATS_INT_TO_STRING.keys())
+
+                    player_metadata = {
+                        'name': get_nested(player, 'playerPoolEntry.player.fullName'),
+                        'id': get_nested(player, 'playerPoolEntry.player.id'),
+                        'stats': {
+                            'points': relevant_items.get('points'),
+                            'blocks': relevant_items.get('blocks'),
+                            'steals': relevant_items.get('steals'),
+                            'assists': relevant_items.get('assists'),
+                            'rebounds': relevant_items.get('rebounds')
+                        }
+                    }
+
+                    team_stats.append(player_metadata)
+                    logger.info(f'Team Stats: {player_metadata}')
+
+        return team_stats
+
+    def _calculate_totals(self):
+        roster_stats = self.roster_stats
+
+        stat_totals = {
+            'points': sum(d['stats'].get('points') for d in roster_stats),
+            'blocks': sum(d['stats'].get('blocks') for d in roster_stats),
+            'steals': sum(d['stats'].get('steals') for d in roster_stats),
+            'assists': sum(d['stats'].get('assists') for d in roster_stats),
+            'rebounds': sum(d['stats'].get('rebounds') for d in roster_stats),
+        }
+
+        logger.info(f'Team Statistics Totals: {stat_totals}')
+
+        return stat_totals
