@@ -28,7 +28,7 @@ class League(object):
         self._fetch_league()
         self._fetch_team_id()
         self._fetch_teams()
-        self._fetch_roster()
+        self.roster = self._fetch_roster()
 
     def __repr__(self):
         return f'League: {self.league_id} Year: {self.year}'
@@ -93,5 +93,7 @@ class League(object):
         rosters = resp.json()['teams']
 
         team_id_roster = [x for x in rosters if x.get('id') == self.team_id]
+
+        return rosters
 
 
