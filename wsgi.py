@@ -1,5 +1,6 @@
 """App entry point."""
 import ast
+import re
 
 from flask import redirect, render_template, request, session
 from app import create_app
@@ -21,10 +22,11 @@ def dashboard():
 
 	if request.method == 'POST':
 
-		leage_url = request.values.get('league-url')
+		league_url = request.values.get('league-url')
 		username = request.values.get('username')
 		password = request.values.get('password')
 		cookies = request.values.get('cookies')
+		year = request.values.get('league-year')
 
 		if not (username and password) and cookies == '':
 			return 404
@@ -37,10 +39,15 @@ def dashboard():
 			return 404
 
 		session['espn_cred_cookies'] = creds
+		league_id = re.search('(?<=leagueId=)(.*)(?=&)', league_url).group()
+		team_id = re.search('(?<=teamId=)(.*)', league_url).group()
 
 		return render_template(
 			'dashboard.html',
-			creds=creds
+			creds=creds,
+			year=int(year),
+			league_id=league_id,
+			team_id=team_id
 		)
 
 
