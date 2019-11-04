@@ -1,3 +1,29 @@
+Highcharts.theme = {
+    title: {
+        style: {
+            color: '#000',
+            font: 'bold 16px "Helvtica", Arial, sans-serif'
+        }
+    },
+    subtitle: {
+        style: {
+            color: '#666666',
+            font: 'bold 12px "Helvtica", Arial, sans-serif'
+        }
+    },
+    legend: {
+        itemStyle: {
+            font: '9pt Helvtica, Arial, sans-serif',
+            color: 'black'
+        },
+        itemHoverStyle:{
+            color: 'gray'
+        }   
+    }
+};
+// Apply the theme
+Highcharts.setOptions(Highcharts.theme);
+
 Highcharts.chart('container', {
     chart: {
         type: 'bar'

@@ -1,5 +1,6 @@
 """App entry point."""
 import ast
+import os
 import re
 
 
@@ -11,6 +12,12 @@ from src.league import League
 
 
 app = create_app()
+
+
+def dir_last_updated(folder):
+    return str(max(os.path.getmtime(os.path.join(root_path, f))
+               for root_path, dirs, files in os.walk(folder)
+               for f in files))
 
 
 @app.route('/', methods=['GET'])
@@ -64,7 +71,8 @@ def dashboard():
 			league_id=league_id,
 			team_id=team_id,
 			league_obj=dir(league),
-			roster_stats=league.stat_totals
+			roster_stats=league.stat_totals,
+			last_updated=dir_last_updated('app/static')
 		)
 
 

@@ -21,6 +21,6 @@
 var roster_data = {{ roster_stats|tojson|safe }}
 </script>
 
-<script src="{{ url_for('static', filename='chart.js') }}"></script>
+<script src="{{ url_for('static', filename='chart.js') }}?u={{ last_updated }}"></script>
 
 {% endblock %}
