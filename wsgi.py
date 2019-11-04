@@ -1,5 +1,6 @@
 """App entry point."""
 import ast
+import os
 import re
 
 
@@ -11,6 +12,12 @@ from src.league import League
 
 
 app = create_app()
+
+
+def dir_last_updated(folder):
+    return str(max(os.path.getmtime(os.path.join(root_path, f))
+               for root_path, dirs, files in os.walk(folder)
+               for f in files))
 
 
 @app.route('/', methods=['GET'])
@@ -40,9 +47,15 @@ def dashboard():
 		else:
 			return 404
 
-		session['espn_cred_cookies'] = creds
 		league_id = re.search('(?<=leagueId=)(.*)(?=&)', league_url).group()
 		team_id = re.search('(?<=teamId=)(.*)', league_url).group()
+
+		session['session_info'] = {
+			'creds': creds,
+			'league_id': league_id,
+			'team_id': team_id,
+			'year': int(year)
+		}
 
 		league = League(
 			league_id=league_id,
@@ -57,8 +70,30 @@ def dashboard():
 			year=int(year),
 			league_id=league_id,
 			team_id=team_id,
-			league_obj=dir(league)
+			league_obj=dir(league),
+			roster_stats=league.stat_totals,
+			last_updated=dir_last_updated('app/static')
 		)
+
+
+@app.route('/my-team')
+def my_team():
+
+	meta = session.get('session_info')
+
+	league = League(
+		league_id=meta['league_id'],
+		year=meta['year'],
+		team_id=int(meta['team_id']),
+		cookies=meta['creds']
+	)
+
+	info = {
+		'session': meta,
+		'roster': league._fetch_roster()
+	}
+
+	return info
 
 
 if __name__ == "__main__":

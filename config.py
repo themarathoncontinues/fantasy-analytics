@@ -1,4 +1,5 @@
 """App configuration."""
+import datetime
 import os
 
 
@@ -11,3 +12,5 @@ class Config:
     # Static Assets
     STATIC_FOLDER = f'{os.getcwd()}/app/static/'
     TEMPLATES_FOLDER = f'{os.getcwd()}/app/templates/'
+
+    PERMANENT_SESSION_LIFETIME = datetime.timedelta(days=1)

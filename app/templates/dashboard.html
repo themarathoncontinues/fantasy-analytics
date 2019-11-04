@@ -1,6 +1,8 @@
 {% extends 'base.html' %}
 
 {% block content %}
+<a href="{{ url_for('my_team') }}">My Team</a>
+<hr>
 <p>Creds = {{ creds }}</p>
 <p>league = {{ league_id }}</p>
 <p>year = {{ year }}</p>
@@ -13,8 +15,12 @@
 	{% endfor %}
 
 <br><br><br>
-<div id="container" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
+<div id="container" style="min-width: 310px; height: 600px; margin: 0 auto"></div>
 
-<script src="{{ url_for('static', filename='chart.js') }}"></script>
+<script>
+var roster_data = {{ roster_stats|tojson|safe }}
+</script>
+
+<script src="{{ url_for('static', filename='chart.js') }}?u={{ last_updated }}"></script>
 
 {% endblock %}
