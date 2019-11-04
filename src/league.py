@@ -144,7 +144,7 @@ class League(object):
 
         return league_stats
 
-    def _calculate_totals(self):
+    def _calculate_totals(self, team_id=None):
         roster_stats = self.roster_stats
 
         team_totals = []
@@ -161,5 +161,9 @@ class League(object):
             logger.info(f'Team Statistics Totals: {stat_totals}')
             team_totals.append(stat_totals)
 
-        return team_totals
+        if not team_id:
+            return team_totals
+        else:
+            team_id_totals = [x for x in team_totals if x.get('teamId') == team_id]
+            return team_id_totals
 
