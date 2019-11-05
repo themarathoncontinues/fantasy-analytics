@@ -20,8 +20,6 @@ class League(object):
     def __init__(self, league_id: int, year: int, team_id: int, cookies, debug=False):
         self.league_id = league_id
         self.year = year
-        self.current_week = 0
-        self.nba_day = 0
         self.team_id = team_id
         self.cookies = cookies
         if self.cookies:
@@ -30,30 +28,24 @@ class League(object):
             logger.error(f'No Authorization Credentials')
             raise Exception
 
-        self._fetch_league()
-        self._fetch_team_id()
-        self._fetch_teams()
-        self.rosters = self._fetch_roster()
-        self.roster_stats = self._fetch_stats()
-        self.stat_totals = self._calculate_totals()
-
     def __repr__(self):
-        return f'League: {self.league_id} Year: {self.year}'
+        return f'<League `{self.league_id}` {self.year}>'
 
-    def _fetch_league(self):
+    def _fetch_league_meta(self):
         req = f'{FBA_ENDPOINT}{self.year}/segments/0/leagues/{self.league_id}'
         resp = requests.get(req, params='', cookies=self.cookies)
 
-        self.status = resp.status_code
-        request_status(self.status)
+        request_status(resp.status_code)
 
         league_data = resp.json()
         logger.info(f'League Data: {json.dumps(league_data, indent=4)}')
 
-        self.current_week = league_data['status']['currentMatchupPeriod']
-        self.nba_day = league_data['status']['latestScoringPeriod']
+        return {
+            'current_week': league_data['status']['currentMatchupPeriod'],
+            'nba_day': league_data['status']['latestScoringPeriod']
+        }
 
-    def _fetch_team_id(self):
+    def _fetch_team_meta(self):
         params = {
             'view': 'mTeam'
         }
@@ -61,15 +53,28 @@ class League(object):
         req = f'{FBA_ENDPOINT}{self.year}/segments/0/leagues/{self.league_id}'
         resp = requests.get(req, params=params, cookies=self.cookies)
 
-        self.status = resp.status_code
-        request_status(self.status)
+        request_status(resp.status_code)
 
         teams = resp.json()['teams']
 
-        # NOTE: This can be fixed up to be faster
-        team_id_data = [x for x in teams if x.get('id') == self.team_id]
+        ## fantasy team ids start at 1 not 0
+        my_team = teams[self.team_id-1]
 
-        logger.info(f'My Team Data: {json.dumps(team_id_data, indent=4)}')
+        team_meta = {
+            'abbrev': my_team['abbrev'],
+            'owner': my_team['primaryOwner'],
+            'name': my_team['nickname'],
+            'record': (
+                my_team['record']['overall']['wins'],
+                my_team['record']['overall']['losses'],
+                my_team['record']['overall']['ties']
+            ),
+            'stats': my_team['valuesByStat']
+        }
+
+        logger.info(f'My Team Data: {json.dumps(team_meta, indent=4)}')
+
+        return team_meta
 
     def _fetch_teams(self):
         params = {
