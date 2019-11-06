@@ -40,13 +40,13 @@ class League(object):
         data = resp.json()
         logger.info(f'League Data: {json.dumps(data, indent=4)}')
 
-        players = [(x['id'], x['displayName']) for x in data['members']]
+        members = [(x['id'], x['displayName']) for x in data['members']]
         teams = [(x['id'], x['owners'][0], x['nickname']) for x in data['teams']]
 
         return {
             'current_week': data['status']['currentMatchupPeriod'],
             'nba_day': data['status']['latestScoringPeriod'],
-            'players': players,
+            'members': members,
             'teams': teams
         }
 
