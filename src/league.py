@@ -22,45 +22,54 @@ class League(object):
         self.year = year
         self.team_id = team_id
         self.cookies = cookies
-        if self.cookies:
-            self.cookies = cookies
-        else:
-            logger.error(f'No Authorization Credentials')
-            raise Exception
+        if not self.cookies:
+            logger.error('No Authorization Credentials')
+            raise ValueError('No Authorization Credentials')
 
     def __repr__(self):
         return f'<League `{self.league_id}` {self.year}>'
 
     def _fetch_league_meta(self):
-        req = f'{FBA_ENDPOINT}{self.year}/segments/0/leagues/{self.league_id}'
-        resp = requests.get(req, params='', cookies=self.cookies)
 
+        url = f'{FBA_ENDPOINT}{self.year}/segments/0/leagues/{self.league_id}'
+        resp = requests.get(url=url, cookies=self.cookies)
+
+        # raise error if bad response
         request_status(resp.status_code)
 
-        league_data = resp.json()
-        logger.info(f'League Data: {json.dumps(league_data, indent=4)}')
+        data = resp.json()
+        logger.info(f'League Data: {json.dumps(data, indent=4)}')
+
+        players = [(x['id'], x['displayName']) for x in data['members']]
+        teams = [(x['id'], x['owners'][0], x['nickname']) for x in data['teams']]
 
         return {
-            'current_week': league_data['status']['currentMatchupPeriod'],
-            'nba_day': league_data['status']['latestScoringPeriod']
+            'current_week': data['status']['currentMatchupPeriod'],
+            'nba_day': data['status']['latestScoringPeriod'],
+            'players': players,
+            'teams': teams
         }
 
-    def _fetch_team_meta(self):
+    def _fetch_team_meta(self, team_id=None):
+
+        team_id = team_id if team_id is not None else self.team_id
+
         params = {
             'view': 'mTeam'
         }
-
-        req = f'{FBA_ENDPOINT}{self.year}/segments/0/leagues/{self.league_id}'
-        resp = requests.get(req, params=params, cookies=self.cookies)
+        url = f'{FBA_ENDPOINT}{self.year}/segments/0/leagues/{self.league_id}'
+        resp = requests.get(url=url, params=params, cookies=self.cookies)
 
         request_status(resp.status_code)
 
+        # raise error if bad response
         teams = resp.json()['teams']
 
         ## fantasy team ids start at 1 not 0
-        my_team = teams[self.team_id-1]
+        my_team = teams[team_id-1]
 
         team_meta = {
+            'id': team_id,
             'abbrev': my_team['abbrev'],
             'owner': my_team['primaryOwner'],
             'name': my_team['nickname'],
@@ -76,34 +85,29 @@ class League(object):
 
         return team_meta
 
-    def _fetch_teams(self):
-        params = {
-            'view': 'mTeam'
-        }
 
-        req = f'{FBA_ENDPOINT}{self.year}/segments/0/leagues/{self.league_id}'
-        resp = requests.get(req, params=params, cookies=self.cookies)
-
-        self.status = resp.status_code
-        request_status(self.status)
-
-        team_data = resp.json()
-
-        return team_data
-
-    def _fetch_roster(self):
+    def _fetch_rosters(self, team_id=None):
         params = {
             'view': 'mRoster',
-            'scoringPeriod': self.current_week
+            # 'scoringPeriod': self.current_week
         }
 
-        req = f'{FBA_ENDPOINT}{self.year}/segments/0/leagues/{self.league_id}'
-        resp = requests.get(req, params=params, cookies=self.cookies)
+        url = f'{FBA_ENDPOINT}{self.year}/segments/0/leagues/{self.league_id}'
+        resp = requests.get(url=url, params=params, cookies=self.cookies)
 
-        self.status = resp.status_code
-        request_status(self.status)
+        request_status(resp.status_code)
 
-        rosters = resp.json()['teams']
+        data = resp.json()
+
+        ## make more efficient
+        rosters = {}
+        for team in data['teams']:
+            rosters[team['id']] = []
+            for player in team['roster']['entries']:
+                rosters[team['id']].append((
+                    player['playerId'],
+                    player['playerPoolEntry']['player']['fullName']
+                ))
 
         return rosters
 
