@@ -18,13 +18,14 @@ logger = logging.getLogger(__name__)
 class League(object):
     """Get league instance from ESPN"""
     def __init__(self, league_id: int, year: int, team_id: int, cookies, debug=False):
-        self.league_id = league_id
-        self.year = year
-        self.team_id = team_id
         self.cookies = cookies
         if not self.cookies:
             logger.error('No Authorization Credentials')
             raise ValueError('No Authorization Credentials')
+        self.league_id = league_id
+        self.year = year
+        self.team_id = team_id
+        self.meta = self._fetch_league_meta()
 
     def __repr__(self):
         return f'<League `{self.league_id}` {self.year}>'
@@ -38,17 +39,24 @@ class League(object):
         request_status(resp.status_code)
 
         data = resp.json()
-        logger.info(f'League Data: {json.dumps(data, indent=4)}')
 
-        members = [(x['id'], x['displayName']) for x in data['members']]
-        teams = [(x['id'], x['owners'][0], x['nickname']) for x in data['teams']]
+        members = [{'id': x['id'], 'name': x['displayName']} for x in data['members']]
+        teams = [
+            {'id': x['id'], 'owner': x['owners'][0], 'name': x['nickname']}
+            for x in data['teams']
+        ]
 
-        return {
+        meta = {
             'current_week': data['status']['currentMatchupPeriod'],
             'nba_day': data['status']['latestScoringPeriod'],
             'members': members,
             'teams': teams
         }
+
+        logger.info(f'League Data: {json.dumps(meta, indent=4)}')
+
+        return meta
+
 
     def _fetch_team_meta(self, team_id=None):
 
@@ -87,9 +95,10 @@ class League(object):
 
 
     def _fetch_rosters(self, team_id=None):
+
         params = {
             'view': 'mRoster',
-            # 'scoringPeriod': self.current_week
+            'scoringPeriod': self.meta['current_week']
         }
 
         url = f'{FBA_ENDPOINT}{self.year}/segments/0/leagues/{self.league_id}'
@@ -113,6 +122,7 @@ class League(object):
 
     def _fetch_stats(self):
         league_stats = []
+
         rosters = self.rosters
 
         for roster in rosters:
