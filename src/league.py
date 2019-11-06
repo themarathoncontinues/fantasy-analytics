@@ -17,93 +17,116 @@ logger = logging.getLogger(__name__)
 
 class League(object):
     """Get league instance from ESPN"""
+
     def __init__(self, league_id: int, year: int, team_id: int, cookies, debug=False):
+        self.cookies = cookies
+        if not self.cookies:
+            logger.error('No Authorization Credentials')
+            raise ValueError('No Authorization Credentials')
         self.league_id = league_id
         self.year = year
-        self.current_week = 0
-        self.nba_day = 0
         self.team_id = team_id
-        self.cookies = cookies
-        if self.cookies:
-            self.cookies = cookies
-        else:
-            logger.error(f'No Authorization Credentials')
-            raise Exception
+        self.meta = self._fetch_league_meta()
 
-        self._fetch_league()
-        self._fetch_team_id()
-        self._fetch_teams()
-        self.rosters = self._fetch_roster()
-        self.roster_stats = self._fetch_stats()
-        self.stat_totals = self._calculate_totals()
 
     def __repr__(self):
-        return f'League: {self.league_id} Year: {self.year}'
+        return f'<League `{self.league_id}` {self.year}>'
 
-    def _fetch_league(self):
-        req = f'{FBA_ENDPOINT}{self.year}/segments/0/leagues/{self.league_id}'
-        resp = requests.get(req, params='', cookies=self.cookies)
 
-        self.status = resp.status_code
-        request_status(self.status)
+    def _fetch_league_meta(self):
 
-        league_data = resp.json()
-        logger.info(f'League Data: {json.dumps(league_data, indent=4)}')
+        url = f'{FBA_ENDPOINT}{self.year}/segments/0/leagues/{self.league_id}'
+        resp = requests.get(url=url, cookies=self.cookies)
 
-        self.current_week = league_data['status']['currentMatchupPeriod']
-        self.nba_day = league_data['status']['latestScoringPeriod']
+        # raise error if bad response
+        request_status(resp.status_code)
 
-    def _fetch_team_id(self):
+        data = resp.json()
+
+        members = [{'id': x['id'], 'name': x['displayName']} for x in data['members']]
+        teams = [
+            {'id': x['id'], 'owner': x['owners'][0], 'name': x['nickname']}
+            for x in data['teams']
+        ]
+
+        meta = {
+            'current_week': data['status']['currentMatchupPeriod'],
+            'nba_day': data['status']['latestScoringPeriod'],
+            'members': members,
+            'teams': teams
+        }
+
+        logger.info(f'League Data: {json.dumps(meta, indent=4)}')
+
+        return meta
+
+
+    def _fetch_team_meta(self, team_id=None):
+
+        team_id = team_id if team_id is not None else self.team_id
+
         params = {
             'view': 'mTeam'
         }
+        url = f'{FBA_ENDPOINT}{self.year}/segments/0/leagues/{self.league_id}'
+        resp = requests.get(url=url, params=params, cookies=self.cookies)
 
-        req = f'{FBA_ENDPOINT}{self.year}/segments/0/leagues/{self.league_id}'
-        resp = requests.get(req, params=params, cookies=self.cookies)
+        request_status(resp.status_code)
 
-        self.status = resp.status_code
-        request_status(self.status)
-
+        # raise error if bad response
         teams = resp.json()['teams']
 
-        # NOTE: This can be fixed up to be faster
-        team_id_data = [x for x in teams if x.get('id') == self.team_id]
+        ## fantasy team ids start at 1 not 0
+        my_team = teams[team_id-1]
 
-        logger.info(f'My Team Data: {json.dumps(team_id_data, indent=4)}')
-
-    def _fetch_teams(self):
-        params = {
-            'view': 'mTeam'
+        team_meta = {
+            'id': team_id,
+            'abbrev': my_team['abbrev'],
+            'owner': my_team['primaryOwner'],
+            'name': my_team['nickname'],
+            'record': {
+                'w': my_team['record']['overall']['wins'],
+                'l': my_team['record']['overall']['losses'],
+                't': my_team['record']['overall']['ties']
+            },
+            'stats': my_team['valuesByStat']
         }
 
-        req = f'{FBA_ENDPOINT}{self.year}/segments/0/leagues/{self.league_id}'
-        resp = requests.get(req, params=params, cookies=self.cookies)
+        logger.info(f'My Team Data: {json.dumps(team_meta, indent=4)}')
 
-        self.status = resp.status_code
-        request_status(self.status)
+        return team_meta
 
-        team_data = resp.json()
 
-        return team_data
+    def _fetch_rosters(self, team_id=None):
 
-    def _fetch_roster(self):
         params = {
             'view': 'mRoster',
-            'scoringPeriod': self.current_week
+            'scoringPeriod': self.meta['current_week']
         }
 
-        req = f'{FBA_ENDPOINT}{self.year}/segments/0/leagues/{self.league_id}'
-        resp = requests.get(req, params=params, cookies=self.cookies)
+        url = f'{FBA_ENDPOINT}{self.year}/segments/0/leagues/{self.league_id}'
+        resp = requests.get(url=url, params=params, cookies=self.cookies)
 
-        self.status = resp.status_code
-        request_status(self.status)
+        request_status(resp.status_code)
 
-        rosters = resp.json()['teams']
+        data = resp.json()
+
+        ## make more efficient
+        rosters = {}
+        for team in data['teams']:
+            rosters[team['id']] = []
+            for player in team['roster']['entries']:
+                rosters[team['id']].append({
+                    'id': player['playerId'],
+                    'name': player['playerPoolEntry']['player']['fullName']
+                })
 
         return rosters
 
+
     def _fetch_stats(self):
         league_stats = []
+
         rosters = self.rosters
 
         for roster in rosters:
@@ -143,6 +166,7 @@ class League(object):
             league_stats.append(team_stats)
 
         return league_stats
+
 
     def _calculate_totals(self, team_id=None):
         roster_stats = self.roster_stats
