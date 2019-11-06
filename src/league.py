@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 
 class League(object):
     """Get league instance from ESPN"""
+
     def __init__(self, league_id: int, year: int, team_id: int, cookies, debug=False):
         self.cookies = cookies
         if not self.cookies:
@@ -27,8 +28,10 @@ class League(object):
         self.team_id = team_id
         self.meta = self._fetch_league_meta()
 
+
     def __repr__(self):
         return f'<League `{self.league_id}` {self.year}>'
+
 
     def _fetch_league_meta(self):
 
@@ -81,11 +84,11 @@ class League(object):
             'abbrev': my_team['abbrev'],
             'owner': my_team['primaryOwner'],
             'name': my_team['nickname'],
-            'record': (
-                my_team['record']['overall']['wins'],
-                my_team['record']['overall']['losses'],
-                my_team['record']['overall']['ties']
-            ),
+            'record': {
+                'w': my_team['record']['overall']['wins'],
+                'l': my_team['record']['overall']['losses'],
+                't': my_team['record']['overall']['ties']
+            },
             'stats': my_team['valuesByStat']
         }
 
@@ -113,12 +116,13 @@ class League(object):
         for team in data['teams']:
             rosters[team['id']] = []
             for player in team['roster']['entries']:
-                rosters[team['id']].append((
-                    player['playerId'],
-                    player['playerPoolEntry']['player']['fullName']
-                ))
+                rosters[team['id']].append({
+                    'id': player['playerId'],
+                    'name': player['playerPoolEntry']['player']['fullName']
+                })
 
         return rosters
+
 
     def _fetch_stats(self):
         league_stats = []
@@ -162,6 +166,7 @@ class League(object):
             league_stats.append(team_stats)
 
         return league_stats
+
 
     def _calculate_totals(self, team_id=None):
         roster_stats = self.roster_stats
