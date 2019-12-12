@@ -1,8 +1,6 @@
 import os
 
-from src.league import League
-from src.constants import STATS_INT_TO_STRING
-from src.utils.json_util import get_nested
+from src.fba_league import runner
 
 from dotenv import load_dotenv
 
@@ -19,4 +17,14 @@ cookies = {
     'swid': swid
 }
 
-roster = League(league_id=69561285, year=2020, team_id=4, cookies=cookies)._calculate_totals(team_id=4)
+
+def tester():
+    task = runner(
+        year=2020,
+        league_id=69561285,
+        cookies=cookies
+    )
+
+
+if __name__ == '__main__':
+    tester()
