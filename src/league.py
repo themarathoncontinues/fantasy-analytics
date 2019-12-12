@@ -32,7 +32,6 @@ class League(object):
     def __repr__(self):
         return f'<League `{self.league_id}` {self.year}>'
 
-
     def _fetch_league_meta(self):
 
         url = f'{FBA_ENDPOINT}{self.year}/segments/0/leagues/{self.league_id}'
