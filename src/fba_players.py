@@ -120,7 +120,7 @@ def build(year: int, league_id: int, cookies: dict) -> Flow:
     :return:
     """
 
-    with Flow('league_flow') as flow:
+    with Flow('players_flow') as flow:
         year = Parameter('year')
         league_id = Parameter('league_id')
         cookies = Parameter('cookies')
