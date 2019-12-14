@@ -27,10 +27,10 @@ setup(
      keywords='Fantasy Basketball Analytics',
      packages=find_packages(),
      install_requires=[
-	 	'requests',
-		'prefect',
-		'flask',
-		'python-dotenv',
-		'prefect[viz]'
-	 ]
+         'requests',
+         'prefect',
+         'flask',
+         'python-dotenv',
+         'prefect[viz]'
+     ]
 )
