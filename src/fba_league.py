@@ -3,6 +3,8 @@ import json
 import logging
 import requests
 
+from .constants import FBA_ENDPOINT
+
 from prefect import (
     Flow,
     Parameter,
@@ -10,9 +12,10 @@ from prefect import (
     unmapped
 )
 
-from prefect.utilities.debug import raise_on_exception
-
-from .constants import FBA_ENDPOINT
+from prefect.utilities.debug import (
+    raise_on_exception,
+    state
+)
 
 from .utils.http_util import request_status
 
@@ -94,7 +97,7 @@ def fetch_team_meta(base_url: str, team_id: int, cookies: Parameter) -> dict:
     return team_meta
 
 
-def build(year: int, league_id: int, cookies: dict):
+def build(year: int, league_id: int, cookies: dict) -> Flow:
     """
     with Parameter
     :return:
@@ -116,7 +119,7 @@ def build(year: int, league_id: int, cookies: dict):
             cookies=cookies
         )
 
-        fetch = fetch_team_meta.map(
+        fetch_team_meta.map(
             base_url=unmapped(req),  # this is something to look into
             team_id=meta['team_ids'],
             cookies=unmapped(cookies)
@@ -125,7 +128,7 @@ def build(year: int, league_id: int, cookies: dict):
         return flow
 
 
-def execute(flow: Flow, year: int, league_id: int, cookies: dict):
+def execute(flow: Flow, year: int, league_id: int, cookies: dict) -> state:
 
     with raise_on_exception():
         fout = flow.run(
@@ -137,7 +140,7 @@ def execute(flow: Flow, year: int, league_id: int, cookies: dict):
         return fout
 
 
-def runner(year: int, league_id: int, cookies: dict):
+def league(year: int, league_id: int, cookies: dict) -> state:
     flow = build(
         year=year,
         league_id=league_id,
