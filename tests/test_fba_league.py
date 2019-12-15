@@ -105,6 +105,7 @@ def test_fetch_team_meta(mock_prefect_context, mock_request, team_id):
     )
 
     assert result.get('id') == team_id
+    assert isinstance(result.get('record'), dict)
     assert result.get('isCurrentUser') is False
 
 
