@@ -57,6 +57,11 @@ class RosterEntryAccess(dict):
         player = self.player
         return player.get('fullName') if player else None
 
+    @property
+    def stats(self):
+        player = self.player
+        return player.get('stats', None) if player else None
+
 
 class TeamMetaAccess(dict):
     def __init__(self, data: dict):

@@ -103,7 +103,8 @@ def fetch_rosters(base_url: str, cookies: Parameter) -> dict:
 
             rosters[team_obj.team_id].append({
                 'playerId': player_obj.player_id,
-                'fullName': player_obj.full_name
+                'fullName': player_obj.full_name,
+                'stats': player_obj.stats  # NOTE: we need to find a way to index this (maybe db level?)
             })
 
         roster_logger.debug(f' >> Team {team_obj.team_id} '
