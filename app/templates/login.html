@@ -3,17 +3,24 @@
 {% block content %}
 
 <form method="POST" action="{{ url_for('dashboard') }}">
-	<input type="text" name="league-url" placeholder="ESPN League URL" style="width: 50%">
-	<input type="text" name="league-year" placeholder="Season Year">
+	ESPN League URL: <br>
+	<input type="text" name="league-url"
+		   placeholder="https://fantasy.espn.com/basketball/team?leagueId=1&teamId=1" style="width: 25%"><br>
+	Season Year: <br>
+	<input type="text" name="league-year" placeholder="2020"> <br>
 	<br>
-	<hr>
-	<br>
-	<input type="text" name="username" placeholder="ESPN Username"/>
-	<input type="password" name="password" placeholder="ESPN Password" />
-	<br>
+	ESPN Username: <br>
+	<input type="text" name="username" placeholder="yourUsername"/><br>
+	ESPN Password: <br>
+	<input type="password" name="password" placeholder="yourPassword" /> <br>
+
 	<p>or</p>
+
 	<p>JSON Cookies</p>
-	<textarea name="cookies"></textarea>
+	<textarea name="cookies" placeholder="{
+        'espn_s2': yourESPNs2,
+        'swid': yourSWID
+}" rows=4 style="width: 25%"></textarea> <br>
 	<input type="submit" />
 </form>
 

@@ -3,11 +3,9 @@ from os import path
 from setuptools import setup, find_packages
 from io import open
 
-here = path.abspath(path.dirname(__file__))
-
-# Get the long description from the README file
-with open(path.join(here, 'README.md'), encoding='utf-8') as f:
-     long_description = f.read()
+this_directory = path.abspath(path.dirname(__file__))
+with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
+    long_description = f.read()
 
 setup(
      name='fantasy-analytics',
@@ -27,10 +25,13 @@ setup(
      keywords='Fantasy Basketball Analytics',
      packages=find_packages(),
      install_requires=[
-	 	'requests',
-		'prefect',
-		'flask',
-		'python-dotenv',
-		'prefect[viz]'
-	 ]
+         'requests',
+         'prefect',
+         'flask',
+         'python-dotenv',
+         'prefect[viz]',
+         'pytest',
+         'pytest-cov',
+         'mock'
+     ]
 )

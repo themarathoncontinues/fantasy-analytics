@@ -1,10 +1,15 @@
+import logging
 import os
 
-from src.fba_league import runner
+from src.fba_league import league
+from src.fba_players import players
 
 from dotenv import load_dotenv
 
 from pathlib import Path
+
+logging.basicConfig(level='INFO')
+logger = logging.getLogger(__name__)
 
 SRC = Path(os.getcwd()).absolute()
 load_dotenv(dotenv_path=f'{SRC}/.env')
@@ -19,7 +24,13 @@ cookies = {
 
 
 def tester():
-    task = runner(
+    league_data = league(
+        year=2020,
+        league_id=69561285,
+        cookies=cookies
+    )
+
+    player_data = players(
         year=2020,
         league_id=69561285,
         cookies=cookies
