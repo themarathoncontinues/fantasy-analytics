@@ -23,3 +23,4 @@ existing = PostgresFetch(
     SELECT * FROM information_schema.tables
     """
 )
+

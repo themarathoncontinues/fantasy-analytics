@@ -110,7 +110,7 @@ def fetch_team_meta(base_url: str, team_id: int, cookies: Parameter) -> dict:
     request_status(resp.status_code)
     teams = resp.json()["teams"]
 
-    team = TeamMetaAccess(teams[team_id - 1]) # fantasy team id index starts at 1
+    team = TeamMetaAccess(teams[team_id - 1])  # fantasy team id index starts at 1
 
     team_meta = {
         "id": team_id,
@@ -146,7 +146,7 @@ def build(year: int, league_id: int, cookies: dict) -> Flow:
         meta = fetch_league_meta(base_url=req, cookies=cookies)
 
         fetch_team_meta.map(
-            base_url=unmapped(req), # this is something to look into
+            base_url=unmapped(req),  # this is something to look into
             team_id=meta["team_ids"],
             cookies=unmapped(cookies),
         )
