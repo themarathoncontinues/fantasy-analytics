@@ -48,6 +48,21 @@ create_schema = PostgresExecute(
     """
 )
 
+create_league_table = PostgresExecute(
+    name='create-league-table',
+    db_name=POSTGRES_DBNAME,
+    user=POSTGRES_USERNAME,
+    password=POSTGRES_PASSWORD,
+    host=POSTGRES_HOST,
+    port=POSTGRES_PORT,
+    query="""
+    CREATE TABLE IF NOT EXISTS fantasy_analytics.league(
+        id INTEGER PRIMARY KEY,
+        name VARCHAR(512)
+    );
+    """
+)
+
 create_users_table = PostgresExecute(
     name='create-users-table',
     db_name=POSTGRES_DBNAME,
@@ -60,7 +75,11 @@ create_users_table = PostgresExecute(
         id SERIAL PRIMARY KEY,
         email VARCHAR(128) UNIQUE NOT NULL,
         created_on TIMESTAMP NOT NULL,
-        is_premium_member BOOLEAN NOT NULL
+        is_premium_member BOOLEAN NOT NULL,
+        espn_team_id INTEGER NOT NULL,
+        espn_team_name VARCHAR(64),
+        espn_team_abbrev VARCHAR(16),
+        league_id INTEGER REFERENCES fantasy_analytics.league (id)
     );
     """
 )
