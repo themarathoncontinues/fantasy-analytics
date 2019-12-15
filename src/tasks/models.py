@@ -59,7 +59,8 @@ create_users_table = PostgresExecute(
     CREATE TABLE IF NOT EXISTS fantasy_analytics.users(
         id SERIAL PRIMARY KEY,
         email VARCHAR(128) UNIQUE NOT NULL,
-        created_on TIMESTAMP NOT NULL
+        created_on TIMESTAMP NOT NULL,
+        is_premium_member BOOLEAN NOT NULL
     );
     """
 )
@@ -71,7 +72,6 @@ create_rosters_table = PostgresExecute(
     password=POSTGRES_PASSWORD,
     host=POSTGRES_HOST,
     port=POSTGRES_PORT,
-    # upstream_tasks=['create_users_table'],
     query="""
     CREATE TABLE IF NOT EXISTS fantasy_analytics.rosters(
         id SERIAL PRIMARY KEY,
@@ -87,7 +87,6 @@ create_matchups_table = PostgresExecute(
     password=POSTGRES_PASSWORD,
     host=POSTGRES_HOST,
     port=POSTGRES_PORT,
-    # upstream_tasks=['create_rosters_table'],
     query="""
     CREATE TABLE IF NOT EXISTS fantasy_analytics.matchups(
         id SERIAL PRIMARY KEY,
