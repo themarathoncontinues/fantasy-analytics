@@ -1,11 +1,11 @@
+import json
 import mock
+import os
 import pytest
 
 from prefect import (
     Flow,
 )
-
-from requests import Response
 
 from src.fba_league import (
     url_generator,
@@ -17,8 +17,6 @@ from src.fba_league import (
 )
 
 from src.constants import FBA_ENDPOINT
-
-from tests.test_utils import _resolve_relative_import
 
 
 class MockRequestsObject(dict):
@@ -133,3 +131,10 @@ def test_league_exception():
             league_id=1234,
             cookies={}
         )
+
+
+def _resolve_relative_import(test_file):
+    in_file = os.path.join(os.path.dirname(__file__), test_file)
+    with open(in_file) as f:
+        raw_json = f.read()
+        return json.loads(raw_json)
