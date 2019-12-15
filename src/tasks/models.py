@@ -1,5 +1,5 @@
 import prefect
-from prefect.tasks.postgres import PostgresFetch
+from prefect.tasks.postgres import PostgresExecute, PostgresFetch
 
 from settings import (
     POSTGRES_DBNAME,
@@ -10,7 +10,7 @@ from settings import (
 )
 
 
-existing = PostgresFetch(
+existing_tables = PostgresFetch(
     name='query-existing-tables',
     db_name=POSTGRES_DBNAME,
     user=POSTGRES_USERNAME,
@@ -18,9 +18,45 @@ existing = PostgresFetch(
     host=POSTGRES_HOST,
     port=POSTGRES_PORT,
     fetch="all",
-    tags=["projects"],
     query="""
     SELECT * FROM information_schema.tables
+    """
+)
+
+existing_schemas = PostgresFetch(
+    name='query-existing-schemas',
+    db_name=POSTGRES_DBNAME,
+    user=POSTGRES_USERNAME,
+    password=POSTGRES_PASSWORD,
+    host=POSTGRES_HOST,
+    port=POSTGRES_PORT,
+    fetch="all",
+    query="""
+    SELECT * FROM information_schema.schemata
+    """
+)
+
+create_schema = PostgresExecute(
+    name='create-fantasy-schema',
+    db_name=POSTGRES_DBNAME,
+    user=POSTGRES_USERNAME,
+    password=POSTGRES_PASSWORD,
+    host=POSTGRES_HOST,
+    port=POSTGRES_PORT,
+    query="""
+    CREATE SCHEMA IF NOT EXISTS fantasy_analytics;
+    """
+)
+
+create_users_table = PostgresExecute(
+    name='create-users-table',
+    db_name=POSTGRES_DBNAME,
+    user=POSTGRES_USERNAME,
+    password=POSTGRES_PASSWORD,
+    host=POSTGRES_HOST,
+    port=POSTGRES_PORT,
+    query="""
+    CREATE TABLE IF NOT EXISTS fantasy_analytics.users (i integer);
     """
 )
 
