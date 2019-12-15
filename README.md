@@ -38,11 +38,11 @@ With [Prefect](https://github.com/PrefectHQ/prefect) flows all downstream and up
 
 * fetch league metadata for a given league and year
 
-![Screen Shot](https://imgur.com/JEryNID.png)
+![Screen Shot](https://imgur.com/JEryNID.png){:height="499px"}
 
 
 2) `Flow('players_flow)`
 
 * fetch players for every roster in a league
 
-![Screen Shot](https://imgur.com/yjZVgkT.png)
+![Screen Shot](https://imgur.com/yjZVgkT.png){:height="400px"}
