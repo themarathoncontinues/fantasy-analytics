@@ -46,9 +46,7 @@ def espn_authenticate(user: str, pwd: str):  # pragma no cover
     data = response.json()
 
     if data["error"] is not None:
-        AUTH_LOGGER.debug(
-            "Authentication unsuccessful - error: %s", data["error"]
-        )
+        AUTH_LOGGER.debug("Authentication unsuccessful - error: %s", data["error"])
         AUTH_LOGGER.debug(
             "Retry the authentication or continuing without private league access"
         )

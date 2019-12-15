@@ -11,7 +11,7 @@ from settings import (
 
 
 insert_user = PostgresExecute(
-    name='insert-user',
+    name="insert-user",
     db_name=POSTGRES_DBNAME,
     user=POSTGRES_USERNAME,
     password=POSTGRES_PASSWORD,
@@ -35,6 +35,5 @@ insert_user = PostgresExecute(
         %s,
         %s
     ) ON CONFLICT DO NOTHING
-    """
+    """,
 )
-

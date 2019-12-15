@@ -11,7 +11,7 @@ from settings import (
 
 
 insert_league = PostgresExecute(
-    name='insert-league',
+    name="insert-league",
     db_name=POSTGRES_DBNAME,
     user=POSTGRES_USERNAME,
     password=POSTGRES_PASSWORD,
@@ -27,6 +27,5 @@ insert_league = PostgresExecute(
         %s,
         %s
     ) ON CONFLICT DO NOTHING
-    """
+    """,
 )
-
