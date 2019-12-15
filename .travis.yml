@@ -3,6 +3,7 @@ python:
     - "3.6"
 install:
     - pip install tox
+	- pip install coveralls
 script:
     - tox -v
 after_success:
