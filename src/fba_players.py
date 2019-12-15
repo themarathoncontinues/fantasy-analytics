@@ -1,6 +1,6 @@
 import datetime
 import json
-import logging
+import prefect
 import requests
 
 from .constants import FBA_ENDPOINT
@@ -23,9 +23,6 @@ from src.utils.object_util import (
     RosterEntryAccess
 )
 
-logging.basicConfig(level='INFO')
-logger = logging.getLogger(__name__)
-
 
 @task
 def url_generator(year: Parameter, league_id: Parameter, cookies: Parameter):
@@ -36,11 +33,10 @@ def url_generator(year: Parameter, league_id: Parameter, cookies: Parameter):
 @task(max_retries=3, retry_delay=datetime.timedelta(seconds=0))
 def fetch_rosters(base_url: str, cookies: Parameter) -> dict:
     """
-
+    Fetch rosters for league id
     Args:
         base_url: (str) base espn api url
         cookies: (dict) auth for requests to base_url
-
     Returns:
         rosters: (dict) containing all rosters from league
         (i.e)
@@ -85,6 +81,8 @@ def fetch_rosters(base_url: str, cookies: Parameter) -> dict:
             }
 
     """
+    roster_logger = prefect.context['logger']
+
     params = {
         'view': 'mRoster'
     }
@@ -108,18 +106,22 @@ def fetch_rosters(base_url: str, cookies: Parameter) -> dict:
                 'fullName': player_obj.full_name
             })
 
-        logger.debug(f' >> Team {team_obj.team_id}'
-                    f'Roster: {json.dumps(rosters.get(team_obj.team_id,), indent=4)}')
+        roster_logger.debug(f' >> Team {team_obj.team_id} '
+                            f'Roster: {json.dumps(rosters.get(team_obj.team_id,), indent=4)}')
 
     return rosters
 
 
 def build(year: int, league_id: int, cookies: dict) -> Flow:
     """
-    with Parameter
-    :return:
+    Flow builder with relevant tasks (increase modularity and abstraction)
+    Args:
+        year: (int) - year in which to make requests
+        league_id: (int) - league id in which to make requests
+        cookies: (dict) - auth cookies
+    Returns:
+        flow: (Flow) flow to be executed
     """
-
     with Flow('players_flow') as flow:
         year = Parameter('year')
         league_id = Parameter('league_id')
@@ -140,31 +142,49 @@ def build(year: int, league_id: int, cookies: dict) -> Flow:
 
 
 def execute(flow: Flow, year: int, league_id: int, cookies: dict) -> state:
-
+    """
+    Flow executor/runner (increases abstraction)
+    Args:
+        flow: (Flow) flow to be executed
+        year: (int) - year in which to make requests
+        league_id: (int) - league id in which to make requests
+        cookies: (dict) - auth cookies
+    Returns:
+        players_state: (state) state of league flow
+    """
     with raise_on_exception():
-        fout = flow.run(
+        players_state = flow.run(
             year=year,
             league_id=league_id,
             cookies=cookies
         )
 
-        return fout
+        return players_state
 
 
 def players(year: int, league_id: int, cookies: dict) -> state:
+    """
+    Caller for league flow (independent from build and run to increase modularity)
+    Args:
+        year: (int) - year in which to make requests
+        league_id: (int) - league id in which to make requests
+        cookies: (dict) - auth cookies
+    Returns:
+        league_state: (state) state of league flow
+    """
     flow = build(
         year=year,
         league_id=league_id,
         cookies=cookies
     )
 
-    fout = execute(
+    players_state = execute(
         flow=flow,
         year=year,
         league_id=league_id,
         cookies=cookies
     )
 
-    flow.visualize()
+    # flow.visualize()
 
-    return fout
+    return players_state
