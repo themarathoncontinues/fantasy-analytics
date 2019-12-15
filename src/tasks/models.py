@@ -19,7 +19,7 @@ existing_tables = PostgresFetch(
     port=POSTGRES_PORT,
     fetch="all",
     query="""
-    SELECT * FROM information_schema.tables
+    SELECT * FROM information_schema.tables;
     """
 )
 
@@ -32,7 +32,7 @@ existing_schemas = PostgresFetch(
     port=POSTGRES_PORT,
     fetch="all",
     query="""
-    SELECT * FROM information_schema.schemata
+    SELECT * FROM information_schema.schemata;
     """
 )
 
@@ -56,7 +56,44 @@ create_users_table = PostgresExecute(
     host=POSTGRES_HOST,
     port=POSTGRES_PORT,
     query="""
-    CREATE TABLE IF NOT EXISTS fantasy_analytics.users (i integer);
+    CREATE TABLE IF NOT EXISTS fantasy_analytics.users(
+        id SERIAL PRIMARY KEY,
+        email VARCHAR(128) UNIQUE NOT NULL,
+        created_on TIMESTAMP NOT NULL,
+        is_premium_member BOOLEAN NOT NULL
+    );
+    """
+)
+
+create_rosters_table = PostgresExecute(
+    name='create-rosters-table',
+    db_name=POSTGRES_DBNAME,
+    user=POSTGRES_USERNAME,
+    password=POSTGRES_PASSWORD,
+    host=POSTGRES_HOST,
+    port=POSTGRES_PORT,
+    query="""
+    CREATE TABLE IF NOT EXISTS fantasy_analytics.rosters(
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES fantasy_analytics.users (id)
+    );
+    """
+)
+
+create_matchups_table = PostgresExecute(
+    name='create-matchups-table',
+    db_name=POSTGRES_DBNAME,
+    user=POSTGRES_USERNAME,
+    password=POSTGRES_PASSWORD,
+    host=POSTGRES_HOST,
+    port=POSTGRES_PORT,
+    query="""
+    CREATE TABLE IF NOT EXISTS fantasy_analytics.matchups(
+        id SERIAL PRIMARY KEY,
+        roster_1_id INTEGER REFERENCES fantasy_analytics.rosters (id),
+        roster_2_id INTEGER REFERENCES fantasy_analytics.rosters (id),
+        played_on TIMESTAMP NOT NULL
+    );
     """
 )
 
