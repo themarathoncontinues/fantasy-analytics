@@ -107,9 +107,7 @@ def fetch_team_meta(base_url: str, team_id: int, cookies: Parameter) -> dict:
     params = {"view": "mTeam"}
 
     resp = requests.get(url=base_url, params=params, cookies=cookies)
-
     request_status(resp.status_code)
-
     teams = resp.json()["teams"]
 
     team = TeamMetaAccess(teams[team_id - 1])  # fantasy team id index starts at 1
