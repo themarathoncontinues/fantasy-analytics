@@ -2,7 +2,7 @@
 
 <p align="center">
 <a href="https://travis-ci.com/leonkozlowski/fantasy-analytics"><img alt="Build Status" src="https://travis-ci.com/leonkozlowski/fantasy-analytics.svg?branch=master"></a>
-<a href='https://coveralls.io/github/themarathoncontinues/fantasy-analytics?branch=flow-optimization'><img src='https://coveralls.io/repos/github/themarathoncontinues/fantasy-analytics/badge.svg?branch=flow-optimization' alt='Coverage Status' /></a>
+<a href='https://coveralls.io/github/themarathoncontinues/fantasy-analytics'><img src='https://coveralls.io/repos/github/themarathoncontinues/fantasy-analytics/badge.svg' alt='Coverage Status' /></a>
 <a href="https://github.com/psf/black"><img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
 </p>
 
