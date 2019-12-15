@@ -107,12 +107,11 @@ def fetch_team_meta(base_url: str, team_id: int, cookies: Parameter) -> dict:
     params = {"view": "mTeam"}
 
     resp = requests.get(url=base_url, params=params, cookies=cookies)
-
     request_status(resp.status_code)
-
     teams = resp.json()["teams"]
 
     team = TeamMetaAccess(teams[team_id - 1])  # fantasy team id index starts at 1
+    is_current_user = (team.primary_owner == cookies['swid'])
 
     team_meta = {
         "id": team_id,
@@ -121,6 +120,7 @@ def fetch_team_meta(base_url: str, team_id: int, cookies: Parameter) -> dict:
         "name": team.nick_name,
         "record": {"w": team.wins, "l": team.losses, "t": team.ties},
         "stats": team.values_by_stat,
+        "isCurrentUser": is_current_user
     }
 
     team_meta_logger.info(f"My Team Data: {json.dumps(team_meta, indent=4)}")
