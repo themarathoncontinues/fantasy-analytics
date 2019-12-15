@@ -58,7 +58,7 @@ create_league_table = PostgresExecute(
     query="""
     CREATE TABLE IF NOT EXISTS fantasy_analytics.league(
         id INTEGER PRIMARY KEY,
-        name VARCHAR(512),
+        name VARCHAR(512)
     );
     """
 )
