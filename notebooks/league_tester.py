@@ -1,3 +1,4 @@
+import logging
 import os
 
 from src.fba_league import league
@@ -6,6 +7,9 @@ from src.fba_players import players
 from dotenv import load_dotenv
 
 from pathlib import Path
+
+logging.basicConfig(level='INFO')
+logger = logging.getLogger(__name__)
 
 SRC = Path(os.getcwd()).absolute()
 load_dotenv(dotenv_path=f'{SRC}/.env')
