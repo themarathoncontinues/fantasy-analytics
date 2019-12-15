@@ -30,6 +30,7 @@ setup(
          'flask',
          'python-dotenv',
          'prefect[viz]',
+		 'prefect[postgres]',
          'pytest',
          'pytest-cov',
          'mock'
