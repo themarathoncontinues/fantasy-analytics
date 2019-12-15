@@ -9,6 +9,8 @@ from app import create_app
 from src.auth import espn_authenticate
 from src.fba_league import league
 from src.fba_players import players
+from src.tasks import leagues, users
+
 
 app = create_app()
 
@@ -34,41 +36,18 @@ def dashboard():
         cookies = request.values.get('cookies')
         year = int(request.values.get('league-year'))
 
-        if not (username and password) and cookies == '':
-            return 404
-
-        if cookies != '':
-            creds = ast.literal_eval(cookies)
-        elif (username and password):
-            creds = espn_authenticate(username, password)
-        else:
-            return 404
-
         league_id = re.search('(?<=leagueId=)(.*)(?=&)', league_url).group()
+        league_id = int(league_id)
         team_id = re.search('(?<=teamId=)(.*)', league_url).group()
 
-        session['session_info'] = {
-            'creds': creds,
-            'league_id': league_id,
-            'team_id': team_id,
-            'year': int(year)
-        }
-
-        league_data = league(
-            league_id=int(league_id),
-            year=year,
-            cookies=creds
+        leagues.insert_league.run(
+            data=(league_id, None, year)
+        )
+        users.insert_user.run(
+            data=(username, team_id, None, None, league_id)
         )
 
-        return render_template(
-            'dashboard.html',
-            creds=creds,
-            year=int(year),
-            league_id=league_id,
-            team_id=team_id,
-            league_obj=dir(league),
-            last_updated=dir_last_updated('app/static')
-        )
+        return {'created': f'{username}, {team_id}, {league_id}'}
 
 
 @app.route('/my-team')

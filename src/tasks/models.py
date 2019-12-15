@@ -56,9 +56,10 @@ create_league_table = PostgresExecute(
     host=POSTGRES_HOST,
     port=POSTGRES_PORT,
     query="""
-    CREATE TABLE IF NOT EXISTS fantasy_analytics.league(
+    CREATE TABLE IF NOT EXISTS fantasy_analytics.leagues(
         id INTEGER PRIMARY KEY,
-        name VARCHAR(512)
+        name VARCHAR(512),
+        year INTEGER NOT NULL
     );
     """
 )
@@ -73,7 +74,7 @@ create_users_table = PostgresExecute(
     query="""
     CREATE TABLE IF NOT EXISTS fantasy_analytics.users(
         id SERIAL PRIMARY KEY,
-        email VARCHAR(128) UNIQUE NOT NULL,
+        username VARCHAR(128) UNIQUE NOT NULL,
         created_on TIMESTAMP NOT NULL,
         is_premium_member BOOLEAN NOT NULL,
         espn_team_id INTEGER NOT NULL,
