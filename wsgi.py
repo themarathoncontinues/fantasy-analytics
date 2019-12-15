@@ -55,7 +55,7 @@ def dashboard():
         }
 
         league_data = league(
-            league_id=league_id,
+            league_id=int(league_id),
             year=year,
             cookies=creds
         )
