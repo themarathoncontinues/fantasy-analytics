@@ -3,31 +3,25 @@ import json
 import prefect
 import requests
 
-from .constants import FBA_ENDPOINT
-
 from prefect import (
     Flow,
     Parameter,
     task,
 )
 
-from prefect.utilities.debug import (
-    raise_on_exception,
-    state
-)
+from prefect.utilities.debug import raise_on_exception, state
 
 from src.utils.http_util import request_status
 
-from src.utils.object_util import (
-    RosterAccess,
-    RosterEntryAccess
-)
+from src.utils.object_util import RosterAccess, RosterEntryAccess
+
+from .constants import FBA_ENDPOINT
 
 
 @task
-def url_generator(year: Parameter, league_id: Parameter, cookies: Parameter):
+def url_generator(year: Parameter, league_id: Parameter):
     """Generate base URL for requests for a given year, league_id and cookies"""
-    return f'{FBA_ENDPOINT}{year}/segments/0/leagues/{league_id}'
+    return f"{FBA_ENDPOINT}{year}/segments/0/leagues/{league_id}"
 
 
 @task(max_retries=3, retry_delay=datetime.timedelta(seconds=0))
@@ -81,11 +75,9 @@ def fetch_rosters(base_url: str, cookies: Parameter) -> dict:
             }
 
     """
-    roster_logger = prefect.context['logger']
+    roster_logger = prefect.context["logger"]
 
-    params = {
-        'view': 'mRoster'
-    }
+    params = {"view": "mRoster"}
 
     resp = requests.get(url=base_url, params=params, cookies=cookies)
 
@@ -94,21 +86,25 @@ def fetch_rosters(base_url: str, cookies: Parameter) -> dict:
     data = resp.json()
 
     rosters = {}
-    for team in data['teams']:
+    for team in data["teams"]:
         team_obj = RosterAccess(team)
         rosters[team_obj.team_id] = []
 
         for player in team_obj.entries:
             player_obj = RosterEntryAccess(player)
 
-            rosters[team_obj.team_id].append({
-                'playerId': player_obj.player_id,
-                'fullName': player_obj.full_name,
-                'stats': player_obj.stats  # NOTE: we need to find a way to index this (maybe db level?)
-            })
+            rosters[team_obj.team_id].append(
+                {
+                    "playerId": player_obj.player_id,
+                    "fullName": player_obj.full_name,
+                    "stats": player_obj.stats,  # NOTE: we need to find a way to index this
+                }
+            )
 
-        roster_logger.debug(f' >> Team {team_obj.team_id} '
-                            f'Roster: {json.dumps(rosters.get(team_obj.team_id,), indent=4)}')
+        roster_logger.debug(
+            f" >> Team {team_obj.team_id} "
+            f"Roster: {json.dumps(rosters.get(team_obj.team_id,), indent=4)}"
+        )
 
     return rosters
 
@@ -123,21 +119,14 @@ def build(year: int, league_id: int, cookies: dict) -> Flow:
     Returns:
         flow: (Flow) flow to be executed
     """
-    with Flow('players_flow') as flow:
-        year = Parameter('year')
-        league_id = Parameter('league_id')
-        cookies = Parameter('cookies')
+    with Flow("players_flow") as flow:
+        year = Parameter("year")
+        league_id = Parameter("league_id")
+        cookies = Parameter("cookies")
 
-        req = url_generator(
-            year=year,
-            league_id=league_id,
-            cookies=cookies
-        )
+        req = url_generator(year=year, league_id=league_id)
 
-        fetch_rosters(
-            base_url=req,
-            cookies=cookies
-        )
+        fetch_rosters(base_url=req, cookies=cookies)
 
         return flow
 
@@ -154,11 +143,7 @@ def execute(flow: Flow, year: int, league_id: int, cookies: dict) -> state:
         players_state: (state) state of league flow
     """
     with raise_on_exception():
-        players_state = flow.run(
-            year=year,
-            league_id=league_id,
-            cookies=cookies
-        )
+        players_state = flow.run(year=year, league_id=league_id, cookies=cookies)
 
         return players_state
 
@@ -173,18 +158,9 @@ def players(year: int, league_id: int, cookies: dict) -> state:
     Returns:
         league_state: (state) state of league flow
     """
-    flow = build(
-        year=year,
-        league_id=league_id,
-        cookies=cookies
-    )
+    flow = build(year=year, league_id=league_id, cookies=cookies)
 
-    players_state = execute(
-        flow=flow,
-        year=year,
-        league_id=league_id,
-        cookies=cookies
-    )
+    players_state = execute(flow=flow, year=year, league_id=league_id, cookies=cookies)
 
     # flow.visualize()
 
