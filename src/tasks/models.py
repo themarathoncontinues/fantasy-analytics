@@ -11,7 +11,7 @@ from settings import (
 
 
 existing_tables = PostgresFetch(
-    name='query-existing-tables',
+    name="query-existing-tables",
     db_name=POSTGRES_DBNAME,
     user=POSTGRES_USERNAME,
     password=POSTGRES_PASSWORD,
@@ -20,11 +20,11 @@ existing_tables = PostgresFetch(
     fetch="all",
     query="""
     SELECT * FROM information_schema.tables;
-    """
+    """,
 )
 
 existing_schemas = PostgresFetch(
-    name='query-existing-schemas',
+    name="query-existing-schemas",
     db_name=POSTGRES_DBNAME,
     user=POSTGRES_USERNAME,
     password=POSTGRES_PASSWORD,
@@ -33,11 +33,11 @@ existing_schemas = PostgresFetch(
     fetch="all",
     query="""
     SELECT * FROM information_schema.schemata;
-    """
+    """,
 )
 
 create_schema = PostgresExecute(
-    name='create-fantasy-schema',
+    name="create-fantasy-schema",
     db_name=POSTGRES_DBNAME,
     user=POSTGRES_USERNAME,
     password=POSTGRES_PASSWORD,
@@ -45,11 +45,11 @@ create_schema = PostgresExecute(
     port=POSTGRES_PORT,
     query="""
     CREATE SCHEMA IF NOT EXISTS fantasy_analytics;
-    """
+    """,
 )
 
 create_league_table = PostgresExecute(
-    name='create-league-table',
+    name="create-league-table",
     db_name=POSTGRES_DBNAME,
     user=POSTGRES_USERNAME,
     password=POSTGRES_PASSWORD,
@@ -61,11 +61,11 @@ create_league_table = PostgresExecute(
         name VARCHAR(512),
         year INTEGER NOT NULL
     );
-    """
+    """,
 )
 
 create_users_table = PostgresExecute(
-    name='create-users-table',
+    name="create-users-table",
     db_name=POSTGRES_DBNAME,
     user=POSTGRES_USERNAME,
     password=POSTGRES_PASSWORD,
@@ -82,11 +82,11 @@ create_users_table = PostgresExecute(
         espn_team_abbrev VARCHAR(16),
         league_id INTEGER REFERENCES fantasy_analytics.league (id)
     );
-    """
+    """,
 )
 
 create_rosters_table = PostgresExecute(
-    name='create-rosters-table',
+    name="create-rosters-table",
     db_name=POSTGRES_DBNAME,
     user=POSTGRES_USERNAME,
     password=POSTGRES_PASSWORD,
@@ -97,11 +97,11 @@ create_rosters_table = PostgresExecute(
         id SERIAL PRIMARY KEY,
         user_id INTEGER REFERENCES fantasy_analytics.users (id)
     );
-    """
+    """,
 )
 
 create_matchups_table = PostgresExecute(
-    name='create-matchups-table',
+    name="create-matchups-table",
     db_name=POSTGRES_DBNAME,
     user=POSTGRES_USERNAME,
     password=POSTGRES_PASSWORD,
@@ -114,6 +114,5 @@ create_matchups_table = PostgresExecute(
         roster_2_id INTEGER REFERENCES fantasy_analytics.rosters (id),
         played_on TIMESTAMP NOT NULL
     );
-    """
+    """,
 )
-
