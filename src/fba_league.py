@@ -48,8 +48,8 @@ def fetch_league_meta(base_url: str, cookies: Parameter) -> dict:
     ]
 
     meta = {
-        "current_week": data["status"]["currentMatchupPeriod"],
-        "nba_day": data["status"]["latestScoringPeriod"],
+        "current_week": data["status"].get("currentMatchupPeriod", None),
+        "nba_day": data["status"].get("latestScoringPeriod", None),
         "members": members,
         "teams": teams,
         "team_ids": [team.get("id") for team in teams],

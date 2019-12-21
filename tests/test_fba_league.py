@@ -134,6 +134,19 @@ def test_league_exception():
         )
 
 
+@mock.patch('src.fba_league.execute')
+def test_league_runner_pass(mock_execute_state):
+    mock_execute_state.return_value = True
+
+    result = league(
+        year=2020,
+        league_id=1234,
+        cookies={}
+    )
+
+    assert result is True
+
+
 def _resolve_relative_import(test_file):
     in_file = os.path.join(os.path.dirname(__file__), test_file)
     with open(in_file) as f:
