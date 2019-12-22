@@ -1,18 +1,25 @@
 """App entry point."""
-import ast
 import os
 import re
 
-from flask import redirect, render_template, request, session
+from flask import render_template, request, session
+
 from app import create_app
 
-from src.auth import espn_authenticate
 from src.fba_league import league
+
 from src.fba_players import players
+
 from src.tasks import leagues, users
+
+from src.utils.flask_celery import make_celery
 
 
 app = create_app()
+app.config['CELERY_BROKER_URL'] = os.getenv('CELERY_BROKER_URL')
+app.config['CELERY_BACKEND'] = os.getenv('CELERY_BACKEND')
+
+celery = make_celery(app)
 
 
 def dir_last_updated(folder):
@@ -50,16 +57,19 @@ def dashboard():
         return {'created': f'{username}, {team_id}, {league_id}'}
 
 
-@app.route('/my-team')
-def my_team():
-    meta = session.get('session_info')
-
+@celery.task(name='wsgi.league')
+def fetch_league(meta: dict):
     league_data = league(
         league_id=meta['league_id'],
         year=meta['year'],
         cookies=meta['creds']
     )
 
+    return league_data
+
+
+@celery.task(name='wsgi.league')
+def fetch_players(meta: dict):
     info = {
         'session': meta,
         'roster': players(
@@ -70,6 +80,16 @@ def my_team():
     }
 
     return info
+
+
+@app.route('/my-team')
+def my_team():
+    meta = session.get('session_info')
+
+    fetch_league.delay(meta)
+    fetch_players.delay(meta)
+
+    return 'Celery Tasks!'
 
 
 if __name__ == "__main__":
