@@ -1,5 +1,4 @@
-import prefect
-from prefect.tasks.postgres import PostgresExecute, PostgresFetch
+from prefect.tasks.postgres import PostgresExecute
 
 from settings import (
     POSTGRES_DBNAME,

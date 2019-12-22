@@ -1,4 +1,3 @@
-import prefect
 from prefect.tasks.postgres import PostgresExecute, PostgresFetch
 
 from settings import (

@@ -21,9 +21,7 @@ def espn_authenticate(user: str, pwd: str):  # pragma no cover
 
     if response.status_code != 200 or "api-key" not in response.headers:
         AUTH_LOGGER.debug("Unable to access API-Key")
-        AUTH_LOGGER.debug(
-            "Retry the authentication or continuing without private league access"
-        )
+        AUTH_LOGGER.debug("Retry the authentication")
 
         return None
 
@@ -36,20 +34,21 @@ def espn_authenticate(user: str, pwd: str):  # pragma no cover
 
     if response.status_code != 200:
         AUTH_LOGGER.debug(
-            "Authentication unsuccessful - check username and password input"
+            "Authentication unsuccessful - check credentials"
         )
-        AUTH_LOGGER.debug(
-            "Retry the authentication or continuing without private league access"
-        )
+        AUTH_LOGGER.debug("Retry the authentication")
         return None
 
     data = response.json()
 
     if data["error"] is not None:
-        AUTH_LOGGER.debug("Authentication unsuccessful - error: %s", data["error"])
         AUTH_LOGGER.debug(
-            "Retry the authentication or continuing without private league access"
+            "Authentication unsuccessful - error: %s", data["error"]
         )
+        AUTH_LOGGER.debug("Retry the authentication")
         return None
 
-    return {"espn_s2": data["data"]["s2"], "swid": data["data"]["profile"]["swid"]}
+    return {
+        "espn_s2": data["data"]["s2"],
+        "swid": data["data"]["profile"]["swid"]
+    }

@@ -16,7 +16,15 @@ from .utils.object_util import TeamMetaAccess
 
 @task
 def url_generator(year: Parameter, league_id: Parameter):
-    """Generate base URL for requests for a given year, league_id and cookies"""
+    """
+    Generate base URL for requests for a given year, league_id and cookies
+    Args:
+        year: (Parameter) - user season year
+        league_id: (Parameter) - user league id
+
+    Returns:
+         (str) - request URL
+    """
     return f"{FBA_ENDPOINT}{year}/segments/0/leagues/{league_id}"
 
 
@@ -39,7 +47,9 @@ def fetch_league_meta(base_url: str, cookies: Parameter) -> dict:
 
     data = resp.json()
 
-    members = [{"id": x["id"], "name": x["displayName"]} for x in data["members"]]
+    members = [
+        {"id": x["id"], "name": x["displayName"]} for x in data["members"]
+    ]
 
     # this index zero is bothering me for now
     teams = [
@@ -110,7 +120,8 @@ def fetch_team_meta(base_url: str, team_id: int, cookies: Parameter) -> dict:
     request_status(resp.status_code)
     teams = resp.json()["teams"]
 
-    team = TeamMetaAccess(teams[team_id - 1])  # fantasy team id index starts at 1
+    # team_id index starts at 1
+    team = TeamMetaAccess(teams[team_id - 1])
     is_current_user = team.primary_owner == cookies["swid"]
 
     team_meta = {
@@ -123,14 +134,16 @@ def fetch_team_meta(base_url: str, team_id: int, cookies: Parameter) -> dict:
         "isCurrentUser": is_current_user,
     }
 
-    team_meta_logger.info(f"My Team Data: {json.dumps(team_meta, indent=4)}")
+    team_meta_logger.info(
+        f"Team: %s", json.dumps(team_meta, indent=4))
 
     return team_meta
 
 
 def build(year: int, league_id: int, cookies: dict) -> Flow:
     """
-    Flow builder with relevant tasks (increase modularity and abstraction)
+    Flow builder with relevant tasks
+    (increase modularity and abstraction)
     Args:
         year: (int) - year in which to make requests
         league_id: (int) - league id in which to make requests
@@ -148,7 +161,7 @@ def build(year: int, league_id: int, cookies: dict) -> Flow:
         meta = fetch_league_meta(base_url=req, cookies=cookies)
 
         fetch_team_meta.map(
-            base_url=unmapped(req),  # this is something to look into
+            base_url=unmapped(req),
             team_id=meta["team_ids"],
             cookies=unmapped(cookies),
         )
@@ -168,14 +181,19 @@ def execute(flow: Flow, year: int, league_id: int, cookies: dict) -> state:
         league_state: (state) state of league flow
     """
     with raise_on_exception():
-        league_state = flow.run(year=year, league_id=league_id, cookies=cookies)
+        league_state = flow.run(
+            year=year,
+            league_id=league_id,
+            cookies=cookies
+        )
 
         return league_state
 
 
 def league(year: int, league_id: int, cookies: dict) -> state:
     """
-    Caller for league flow (independent from build and run to increase modularity)
+    Caller for league flow
+    (independent from build and run to increase modularity)
     Args:
         year: (int) - year in which to make requests
         league_id: (int) - league id in which to make requests
@@ -185,7 +203,12 @@ def league(year: int, league_id: int, cookies: dict) -> state:
     """
     flow = build(year=year, league_id=league_id, cookies=cookies)
 
-    league_state = execute(flow=flow, year=year, league_id=league_id, cookies=cookies)
+    league_state = execute(
+        flow=flow,
+        year=year,
+        league_id=league_id,
+        cookies=cookies
+    )
 
     # flow.visualize()
 

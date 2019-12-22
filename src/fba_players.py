@@ -20,7 +20,15 @@ from .constants import FBA_ENDPOINT
 
 @task
 def url_generator(year: Parameter, league_id: Parameter):
-    """Generate base URL for requests for a given year, league_id and cookies"""
+    """
+    Generate base URL for requests for a given year, league_id and cookies
+    Args:
+        year: (Parameter) - user season year
+        league_id: (Parameter) - user league id
+
+    Returns:
+         (str) - request URL
+    """
     return f"{FBA_ENDPOINT}{year}/segments/0/leagues/{league_id}"
 
 
@@ -97,13 +105,12 @@ def fetch_rosters(base_url: str, cookies: Parameter) -> dict:
                 {
                     "playerId": player_obj.player_id,
                     "fullName": player_obj.full_name,
-                    "stats": player_obj.stats,  # NOTE: we need to find a way to index this
+                    "stats": player_obj.stats,
                 }
             )
 
         roster_logger.debug(
-            f" >> Team {team_obj.team_id} "
-            f"Roster: {json.dumps(rosters.get(team_obj.team_id,), indent=4)}"
+            json.dumps(rosters.get(team_obj.team_id,), indent=4)
         )
 
     return rosters
@@ -143,14 +150,19 @@ def execute(flow: Flow, year: int, league_id: int, cookies: dict) -> state:
         players_state: (state) state of league flow
     """
     with raise_on_exception():
-        players_state = flow.run(year=year, league_id=league_id, cookies=cookies)
+        players_state = flow.run(
+            year=year,
+            league_id=league_id,
+            cookies=cookies
+        )
 
         return players_state
 
 
 def players(year: int, league_id: int, cookies: dict) -> state:
     """
-    Caller for league flow (independent from build and run to increase modularity)
+    Caller for league flow
+    (independent from build and run to increase modularity)
     Args:
         year: (int) - year in which to make requests
         league_id: (int) - league id in which to make requests
@@ -158,9 +170,18 @@ def players(year: int, league_id: int, cookies: dict) -> state:
     Returns:
         league_state: (state) state of league flow
     """
-    flow = build(year=year, league_id=league_id, cookies=cookies)
+    flow = build(
+        year=year,
+        league_id=league_id,
+        cookies=cookies
+    )
 
-    players_state = execute(flow=flow, year=year, league_id=league_id, cookies=cookies)
+    players_state = execute(
+        flow=flow,
+        year=year,
+        league_id=league_id,
+        cookies=cookies
+    )
 
     # flow.visualize()
 
