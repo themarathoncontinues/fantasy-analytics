@@ -64,13 +64,14 @@ def dashboard():
         }
 
         fetch_league.delay(meta)
-        fetch_players.delay(meta)
+        # fetch_players.delay(meta)
 
-        return {'created': f'{username}, {team_id}, {league_id}'}
+        return 'Sent async requests!'
+        # return {f'created: {username}, {team_id}, {league_id}'}
 
 
 @celery.task(name='wsgi.fetch_league')
-def fetch_league(meta: dict):
+def fetch_league(meta):
     return league(
         league_id=meta['league_id'],
         year=meta['year'],
@@ -79,7 +80,7 @@ def fetch_league(meta: dict):
 
 
 @celery.task(name='wsgi.fetch_players')
-def fetch_players(meta: dict):
+def fetch_players(meta):
     return players(
         league_id=meta['league_id'],
         year=meta['year'],

@@ -132,7 +132,10 @@ def fetch_team_meta(base_url: str, team_id: int, cookies: Parameter) -> dict:
         "isCurrentUser": is_current_user,
     }
 
-    team_meta_logger.info(f"Team: %s", json.dumps(team_meta, indent=4))
+    team_meta_logger.info(
+        f"id: {team_meta.get('id')}"
+        f"isCurrentUser {team_meta.get('isCurrentUser')}"
+    )
 
     return team_meta
 
