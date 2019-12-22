@@ -6,6 +6,8 @@ from flask import render_template, request, session
 
 from app import create_app
 
+from src.auth import espn_authenticate
+
 from src.fba_league import league
 
 from src.fba_players import players
@@ -40,7 +42,8 @@ def dashboard():
         league_url = request.values.get('league-url')
         username = request.values.get('username')
         password = request.values.get('password')
-        cookies = request.values.get('cookies')
+        cookies = espn_authenticate(user=username, pwd=password)
+        # cookies = request.values.get('cookies')
         year = int(request.values.get('league-year'))
 
         league_id = re.search('(?<=leagueId=)(.*)(?=&)', league_url).group()
@@ -54,32 +57,34 @@ def dashboard():
             data=(username, team_id, None, None, league_id)
         )
 
+        meta = {
+            'league_id': league_id,
+            'year': year,
+            'creds': cookies
+        }
+
+        fetch_league.delay(meta)
+        fetch_players.delay(meta)
+
         return {'created': f'{username}, {team_id}, {league_id}'}
 
 
-@celery.task(name='wsgi.league')
+@celery.task(name='wsgi.fetch_league')
 def fetch_league(meta: dict):
-    league_data = league(
+    return league(
         league_id=meta['league_id'],
         year=meta['year'],
         cookies=meta['creds']
     )
 
-    return league_data
 
-
-@celery.task(name='wsgi.league')
+@celery.task(name='wsgi.fetch_players')
 def fetch_players(meta: dict):
-    info = {
-        'session': meta,
-        'roster': players(
-            league_id=meta['league_id'],
-            year=meta['year'],
-            cookies=meta['creds']
-        )
-    }
-
-    return info
+    return players(
+        league_id=meta['league_id'],
+        year=meta['year'],
+        cookies=meta['creds']
+    )
 
 
 @app.route('/my-team')
@@ -89,7 +94,7 @@ def my_team():
     fetch_league.delay(meta)
     fetch_players.delay(meta)
 
-    return 'Celery Tasks!'
+    return 'Sent async requests!'
 
 
 if __name__ == "__main__":
