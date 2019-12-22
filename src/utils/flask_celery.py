@@ -1,7 +1,7 @@
 from celery import Celery
 
 
-def make_celery(app):
+def make_celery(app):  # pragma no cover
     """
     Instantiate celery.Celery async broker
     Args:
