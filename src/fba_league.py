@@ -1,9 +1,12 @@
 import datetime
 import json
+import os
 import prefect
 import requests
 
 from prefect import Flow, Parameter, task, unmapped
+
+from prefect.engine.executors import DaskExecutor
 
 from prefect.utilities.debug import raise_on_exception, state
 
@@ -47,9 +50,7 @@ def fetch_league_meta(base_url: str, cookies: Parameter) -> dict:
 
     data = resp.json()
 
-    members = [
-        {"id": x["id"], "name": x["displayName"]} for x in data["members"]
-    ]
+    members = [{"id": x["id"], "name": x["displayName"]} for x in data["members"]]
 
     # this index zero is bothering me for now
     teams = [
@@ -135,7 +136,9 @@ def fetch_team_meta(base_url: str, team_id: int, cookies: Parameter) -> dict:
     }
 
     team_meta_logger.info(
-        f"Team: %s", json.dumps(team_meta, indent=4))
+        f"id: {team_meta.get('id')}"
+        f"isCurrentUser {team_meta.get('isCurrentUser')}"
+    )
 
     return team_meta
 
@@ -161,9 +164,7 @@ def build(year: int, league_id: int, cookies: dict) -> Flow:
         meta = fetch_league_meta(base_url=req, cookies=cookies)
 
         fetch_team_meta.map(
-            base_url=unmapped(req),
-            team_id=meta["team_ids"],
-            cookies=unmapped(cookies),
+            base_url=unmapped(req), team_id=meta["team_ids"], cookies=unmapped(cookies),
         )
 
         return flow
@@ -181,11 +182,8 @@ def execute(flow: Flow, year: int, league_id: int, cookies: dict) -> state:
         league_state: (state) state of league flow
     """
     with raise_on_exception():
-        league_state = flow.run(
-            year=year,
-            league_id=league_id,
-            cookies=cookies
-        )
+        executor = DaskExecutor(address=os.getenv('WORKER_ADDRESS'))
+        league_state = flow.run(year=year, league_id=league_id, cookies=cookies, executor=executor)
 
         return league_state
 
@@ -203,12 +201,7 @@ def league(year: int, league_id: int, cookies: dict) -> state:
     """
     flow = build(year=year, league_id=league_id, cookies=cookies)
 
-    league_state = execute(
-        flow=flow,
-        year=year,
-        league_id=league_id,
-        cookies=cookies
-    )
+    league_state = execute(flow=flow, year=year, league_id=league_id, cookies=cookies)
 
     # flow.visualize()
 

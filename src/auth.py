@@ -33,22 +33,15 @@ def espn_authenticate(user: str, pwd: str):  # pragma no cover
     response = requests.post(URL_LOGIN, headers=headers, json=payload)
 
     if response.status_code != 200:
-        AUTH_LOGGER.debug(
-            "Authentication unsuccessful - check credentials"
-        )
+        AUTH_LOGGER.debug("Authentication unsuccessful - check credentials")
         AUTH_LOGGER.debug("Retry the authentication")
         return None
 
     data = response.json()
 
     if data["error"] is not None:
-        AUTH_LOGGER.debug(
-            "Authentication unsuccessful - error: %s", data["error"]
-        )
+        AUTH_LOGGER.debug("Authentication unsuccessful - error: %s", data["error"])
         AUTH_LOGGER.debug("Retry the authentication")
         return None
 
-    return {
-        "espn_s2": data["data"]["s2"],
-        "swid": data["data"]["profile"]["swid"]
-    }
+    return {"espn_s2": data["data"]["s2"], "swid": data["data"]["profile"]["swid"]}

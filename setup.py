@@ -25,14 +25,15 @@ setup(
      keywords='Fantasy Basketball Analytics',
      packages=find_packages(),
      install_requires=[
-         'requests',
-         'prefect',
+         'celery',
          'flask',
-         'python-dotenv',
+         'mock',
+         'prefect',
+         'prefect[postgres]',
          'prefect[viz]',
-		 'prefect[postgres]',
          'pytest',
          'pytest-cov',
-         'mock'
+         'python-dotenv',
+         'requests',
      ]
 )

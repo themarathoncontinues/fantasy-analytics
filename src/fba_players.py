@@ -9,6 +9,8 @@ from prefect import (
     task,
 )
 
+from prefect.engine.executors import DaskExecutor
+
 from prefect.utilities.debug import raise_on_exception, state
 
 from src.utils.http_util import request_status
@@ -109,9 +111,7 @@ def fetch_rosters(base_url: str, cookies: Parameter) -> dict:
                 }
             )
 
-        roster_logger.debug(
-            json.dumps(rosters.get(team_obj.team_id,), indent=4)
-        )
+        roster_logger.debug(json.dumps(rosters.get(team_obj.team_id,), indent=4))
 
     return rosters
 
@@ -150,11 +150,8 @@ def execute(flow: Flow, year: int, league_id: int, cookies: dict) -> state:
         players_state: (state) state of league flow
     """
     with raise_on_exception():
-        players_state = flow.run(
-            year=year,
-            league_id=league_id,
-            cookies=cookies
-        )
+        executor = DaskExecutor(address=os.getenv('WORKER_ADDRESS'))
+        players_state = flow.run(year=year, league_id=league_id, cookies=cookies, executor=executor)
 
         return players_state
 
@@ -170,18 +167,9 @@ def players(year: int, league_id: int, cookies: dict) -> state:
     Returns:
         league_state: (state) state of league flow
     """
-    flow = build(
-        year=year,
-        league_id=league_id,
-        cookies=cookies
-    )
+    flow = build(year=year, league_id=league_id, cookies=cookies)
 
-    players_state = execute(
-        flow=flow,
-        year=year,
-        league_id=league_id,
-        cookies=cookies
-    )
+    players_state = execute(flow=flow, year=year, league_id=league_id, cookies=cookies)
 
     # flow.visualize()
 
