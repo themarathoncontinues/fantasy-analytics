@@ -150,7 +150,7 @@ def execute(flow: Flow, year: int, league_id: int, cookies: dict) -> state:
         players_state: (state) state of league flow
     """
     with raise_on_exception():
-        executor = DaskExecutor(address="tcp://192.168.1.4:8786")
+        executor = DaskExecutor(address=os.getenv('WORKER_ADDRESS'))
         players_state = flow.run(year=year, league_id=league_id, cookies=cookies, executor=executor)
 
         return players_state
