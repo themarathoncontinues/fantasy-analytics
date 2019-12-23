@@ -5,6 +5,8 @@ import requests
 
 from prefect import Flow, Parameter, task, unmapped
 
+from prefect.engine.executors import DaskExecutor
+
 from prefect.utilities.debug import raise_on_exception, state
 
 from .constants import FBA_ENDPOINT
@@ -179,7 +181,8 @@ def execute(flow: Flow, year: int, league_id: int, cookies: dict) -> state:
         league_state: (state) state of league flow
     """
     with raise_on_exception():
-        league_state = flow.run(year=year, league_id=league_id, cookies=cookies)
+        executor = DaskExecutor(address="tcp://192.168.1.4:8786")
+        league_state = flow.run(year=year, league_id=league_id, cookies=cookies, executor=executor)
 
         return league_state
 
