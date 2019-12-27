@@ -1,5 +1,6 @@
 import datetime
 import json
+import os
 import prefect
 import requests
 
@@ -150,8 +151,10 @@ def execute(flow: Flow, year: int, league_id: int, cookies: dict) -> state:
         players_state: (state) state of league flow
     """
     with raise_on_exception():
-        executor = DaskExecutor(address=os.getenv('WORKER_ADDRESS'))
-        players_state = flow.run(year=year, league_id=league_id, cookies=cookies, executor=executor)
+        executor = DaskExecutor(address=os.getenv("WORKER_ADDRESS"))
+        players_state = flow.run(
+            year=year, league_id=league_id, cookies=cookies, executor=executor
+        )
 
         return players_state
 
@@ -173,4 +176,4 @@ def players(year: int, league_id: int, cookies: dict) -> state:
 
     # flow.visualize()
 
-    return players_state
+    return players_state.serialize()

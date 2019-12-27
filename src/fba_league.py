@@ -10,11 +10,11 @@ from prefect.engine.executors import DaskExecutor
 
 from prefect.utilities.debug import raise_on_exception, state
 
-from .constants import FBA_ENDPOINT
+from src.constants import FBA_ENDPOINT
 
-from .utils.http_util import request_status
+from src.utils.http_util import request_status
 
-from .utils.object_util import TeamMetaAccess
+from src.utils.object_util import TeamMetaAccess
 
 
 @task
@@ -136,8 +136,7 @@ def fetch_team_meta(base_url: str, team_id: int, cookies: Parameter) -> dict:
     }
 
     team_meta_logger.info(
-        f"id: {team_meta.get('id')}"
-        f"isCurrentUser {team_meta.get('isCurrentUser')}"
+        f"id: {team_meta.get('id')}" f"isCurrentUser {team_meta.get('isCurrentUser')}"
     )
 
     return team_meta
@@ -182,8 +181,10 @@ def execute(flow: Flow, year: int, league_id: int, cookies: dict) -> state:
         league_state: (state) state of league flow
     """
     with raise_on_exception():
-        executor = DaskExecutor(address=os.getenv('WORKER_ADDRESS'))
-        league_state = flow.run(year=year, league_id=league_id, cookies=cookies, executor=executor)
+        executor = DaskExecutor(address=os.getenv("WORKER_ADDRESS"))
+        league_state = flow.run(
+            year=year, league_id=league_id, cookies=cookies, executor=executor
+        )
 
         return league_state
 
@@ -205,4 +206,4 @@ def league(year: int, league_id: int, cookies: dict) -> state:
 
     # flow.visualize()
 
-    return league_state
+    return league_state.serialize()
