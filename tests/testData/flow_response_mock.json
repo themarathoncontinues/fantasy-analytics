@@ -1,0 +1,10 @@
+{
+    "message": "All reference tasks succeeded.",
+    "_result": {
+        "__version__": "0.8.0",
+        "type": "NoResultType"
+    },
+    "context": {},
+    "__version__": "0.8.0",
+    "type": "Success"
+}

@@ -35,6 +35,18 @@ class MockRequestsObject(dict):
         return self.json
 
 
+class MockFlowResponse(dict):
+    def __init__(self, data: dict):
+        super(MockFlowResponse, self).__init__(data)
+
+    @property
+    def serialize(self):
+        return self
+
+    def __call__(self):
+        return self.serialize
+
+
 def test_flow_build():
     test_flow = build(
         year=2020,
@@ -135,8 +147,10 @@ def test_league_exception():
 
 
 @mock.patch('src.fba_league.execute')
-def test_league_runner_pass(mock_execute_state):
-    mock_execute_state.return_value = True
+def test_league_runner_pass(mock_flow_response):
+    mock_json = _resolve_relative_import('testData/flow_response_mock.json')
+
+    mock_flow_response.return_value = MockFlowResponse(data=mock_json)
 
     result = league(
         year=2020,
@@ -144,7 +158,7 @@ def test_league_runner_pass(mock_execute_state):
         cookies={}
     )
 
-    assert result is True
+    assert isinstance(result, dict)
 
 
 def _resolve_relative_import(test_file):
