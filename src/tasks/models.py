@@ -256,4 +256,3 @@ create_stats_table = PostgresExecute(
     """,
 )
 
-
