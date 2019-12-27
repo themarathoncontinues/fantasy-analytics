@@ -57,4 +57,3 @@ def create_models() -> state:
     state = execute(flow=flow)
 
     return state.serialize()
-
