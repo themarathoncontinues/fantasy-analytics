@@ -1,4 +1,5 @@
 """App entry point."""
+import logging
 import os
 import re
 
@@ -22,6 +23,8 @@ from src.fba_players import players
 
 from src.utils.flask_celery import make_celery
 
+logging.basicConfig(level='DEBUG')
+logger = logging.getLogger(__name__)
 
 app = create_app()
 app.config['CELERY_BROKER_URL'] = os.getenv('CELERY_BROKER_URL')
@@ -49,12 +52,10 @@ def dashboard():
         username = request.values.get('username')
         password = request.values.get('password')
         cookies = espn_authenticate(user=username, pwd=password)
-        # cookies = request.values.get('cookies')
         year = int(request.values.get('league-year'))
 
         league_id = re.search('(?<=leagueId=)(.*)(?=&)', league_url).group()
         league_id = int(league_id)
-        # team_id = re.search('(?<=teamId=)(.*)', league_url).group()
 
         meta = {
             'league_id': league_id,
@@ -63,14 +64,16 @@ def dashboard():
         }
 
         task = fetch_league.apply_async(args=[meta])
-        flash(f'Aggregating data for {meta["league_id"]}')
 
-        return jsonify({'request': 'processing'}), 202, {
-            'bar-prog': url_for(
-                'taskstatus',
-                task_id=task.id
-            )
-        }
+        return jsonify(
+            {
+                "status": 202,
+                "taskId": task.id,
+                "leagueId": league_id,
+                'year': year
+            }
+        ), 202  # {'bar-prog': url_for('taskstatus', task_id=task.id)}
+
 
 
 @app.route('/status/<task_id>')
