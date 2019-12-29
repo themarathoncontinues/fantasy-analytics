@@ -65,16 +65,16 @@ def dashboard():
         task = fetch_league.apply_async(args=[meta])
         flash(f'Aggregating data for {meta["league_id"]}')
 
-        return jsonify({}), 202, {
+        return jsonify({'request': 'processing'}), 202, {
             'bar-prog': url_for(
-                'task_status',
+                'taskstatus',
                 task_id=task.id
             )
         }
 
 
 @app.route('/status/<task_id>')
-def task_status(task_id):
+def taskstatus(task_id):
     task = fetch_league.AsyncResult(task_id)
     if task.state == 'PENDING':
         response = {
@@ -103,7 +103,7 @@ def task_status(task_id):
     return jsonify(response)
 
 
-@celery.task(name='wsgi.fetch_league', bind=True)
+@celery.task(bind=True, name='wsgi.fetch_league')
 def fetch_league(self, meta):
     league(
         league_id=meta['league_id'],
@@ -115,12 +115,7 @@ def fetch_league(self, meta):
         state='PROGRESS'
     )
 
-    return {
-        'current': 100,
-        'total': 100,
-        'status': 'Task Completed',
-        'result': 42
-    }
+    return self
 
 
 @celery.task(name='wsgi.fetch_players')
