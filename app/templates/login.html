@@ -2,83 +2,88 @@
 
 {% block content %}
 
+<style>
+    .progress {
+        width: 100%;
+        text-align: center;
+    }
+</style>
+
 <form method="POST" action="{{ url_for('dashboard') }}">
-	ESPN League URL: <br>
-	<input type="text" name="league-url"
-		   placeholder="https://fantasy.espn.com/basketball/team?leagueId=1&teamId=1" style="width: 25%"><br>
-	Season Year: <br>
-	<input type="text" name="league-year" placeholder="2020"> <br>
-	<br>
-	ESPN Username: <br>
-	<input type="text" name="username" placeholder="yourUsername"/><br>
-	ESPN Password: <br>
-	<input type="password" name="password" placeholder="yourPassword" /> <br>
+    ESPN League URL: <br>
+    <input type="text" name="league-url"
+           placeholder="https://fantasy.espn.com/basketball/team?leagueId=1&teamId=1" style="width: 25%"><br>
+    Season Year: <br>
+    <input type="text" name="league-year" placeholder="2020"> <br>
+    <br>
+    ESPN Username: <br>
+    <input type="text" name="username" placeholder="yourUsername"/><br>
+    ESPN Password: <br>
+    <input type="password" name="password" placeholder="yourPassword"/> <br>
 
-	<p>or</p>
+    <p>or</p>
 
-	<p>JSON Cookies</p>
-	<textarea name="cookies" placeholder="{
+    <p>JSON Cookies</p>
+    <textarea name="cookies" placeholder="{
         'espn_s2': yourESPNs2,
         'swid': yourSWID
 }" rows=4 style="width: 25%"></textarea> <br>
 
-<div id="progress"></div>
-<button id="async-button">Send Async Request</button><br><br>
-
-<script src="//cdnjs.cloudflare.com/ajax/libs/nanobar/0.2.1/nanobar.min.js"></script>
-<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+    <div id="progress"></div>
+    <button id="async-button">Submit</button>
+</form>
 
 <script>
-	function start_long_task(league-url, league-year, username, password) {
-		div = $('<div class="progress"><div></div><div>0%</div><div>...</div><div>&nbsp;</div></div><hr>');
-		$('#progress').append(div);
-		// create a progress bar
-		var nanobar = new Nanobar({
-			bg: '#44f',
-			target: div[0].childNodes[0]
-		});
-		// send ajax POST request to start background job
-		$.ajax({
-			type: 'POST',
-			url: '/dashboard',
-			success: function(data, status, request) {
-				status_url = request.getResponseHeader('bar-prog');
-				update_progress(status_url, nanobar, div[0]);
-			},
-			error: function() {
-				alert('Unexpected error');
-			}
-		});
-	}
-	function update_progress(status_url, nanobar, status_div) {
-		// send GET request to status URL
-		$.getJSON(status_url, function(data) {
-			// update UI
-			percent = parseInt(data['current'] * 100 / data['total']);
-			nanobar.go(percent);
-			$(status_div.childNodes[1]).text(percent + '%');
-			$(status_div.childNodes[2]).text(data['status']);
-			if (data['state'] != 'PENDING' && data['state'] != 'PROGRESS') {
-				if ('result' in data) {
-					// show result
-					$(status_div.childNodes[3]).text('Result: ' + data['result']);
-				}
-				else {
-					// something unexpected happened
-					$(status_div.childNodes[3]).text('Result: ' + data['state']);
-				}
-			}
-			else {
-				// rerun in 2 seconds
-				setTimeout(function() {
-					update_progress(status_url, nanobar, status_div);
-				}, 2000);
-			}
-		});
-	}
-	$(function() {
-		$('#async-button').click(start_long_task);
-	});
+function start_fetch_league(league-url, league-year, username, password) {
+    div = $('<div class="progress"><div></div><div>0%</div><div>...</div><div>&nbsp;</div></div><hr>');
+    $('#progress').append(div);
+    // create a progress bar
+    var nanobar = new Nanobar({
+        bg: '#44f',
+        target: div[0].childNodes[0]
+    });
+    // send ajax POST request to start background job
+    $.ajax({
+        type: 'POST',
+        url: '/dashboard',
+        success: function(data, status, request) {
+            status_url = request.getResponseHeader('bar-prog');
+            update_progress(status_url, nanobar, div[0]);
+        },
+        error: function() {
+            alert('Unexpected error');
+        }
+    });
+}
+function update_progress(status_url, nanobar, status_div) {
+    // send GET request to status URL
+    $.getJSON(status_url, function(data) {
+        // update UI
+        percent = parseInt(data['current'] * 100 / data['total']);
+        nanobar.go(percent);
+        $(status_div.childNodes[1]).text(percent + '%');
+        $(status_div.childNodes[2]).text(data['status']);
+        if (data['state'] != 'PENDING' && data['state'] != 'PROGRESS') {
+            if ('result' in data) {
+                // show result
+                $(status_div.childNodes[3]).text('Result: ' + data['result']);
+            }
+            else {
+                // something unexpected happened
+                $(status_div.childNodes[3]).text('Result: ' + data['state']);
+            }
+        }
+        else {
+            // rerun in 2 seconds
+            setTimeout(function() {
+                update_progress(status_url, nanobar, status_div);
+            }, 2000);
+        }
+    });
+}
+$(function() {
+    $('#async-button').click(start_fetch_league);
+});
+
 </script>
-</form>
 {% endblock %}
